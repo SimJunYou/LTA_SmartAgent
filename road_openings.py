@@ -3,13 +3,11 @@ import pandas as pd
 import datetime
 import os
 
-
 class RoadOpenings:
     """
     The module will download road openings from LTA data mall into the current working dir.
     Call download_all method with an output file name to append the data
     """
-
     def __init__(self, api_key='DZ4mqxgDSyqDNLVqkIMCog=='):
         api_url = 'http://datamall2.mytransport.sg/ltaodataservice/RoadOpenings'
         headers = {'AccountKey': api_key}
