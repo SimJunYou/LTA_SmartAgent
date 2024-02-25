@@ -8,9 +8,8 @@ class EstimatedTravelTime:
     Call download_all method with an output file name to append the data
     """
     def __init__(self, api_key='DZ4mqxgDSyqDNLVqkIMCog=='):
-        self.api_key = api_key
         api_url = 'http://datamall2.mytransport.sg/ltaodataservice/EstTravelTimes'
-        headers = {'AccountKey': self.api_key}
+        headers = {'AccountKey': api_key}
         self.response = requests.get(api_url, headers=headers)
 
     def download_all(self, output_file='data.csv'):
