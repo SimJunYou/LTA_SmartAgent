@@ -10,9 +10,8 @@ class TrafficImages:
     Call retrieve_image(camera_id) method to retrieve a specific image given a specific camera
     """
     def __init__(self, camera_id='all', api_key='DZ4mqxgDSyqDNLVqkIMCog=='):
-        self.api_key = api_key
         api_url = 'http://datamall2.mytransport.sg/ltaodataservice/Traffic-Imagesv2'
-        headers = {'AccountKey': self.api_key}
+        headers = {'AccountKey': api_key}
         self.camera_id = str(camera_id)
         self.response = requests.get(api_url, headers=headers)
         self.image_data = self.download_all()
