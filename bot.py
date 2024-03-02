@@ -1,4 +1,6 @@
+import os
 import logging
+import dotenv
 
 from telegram import ForceReply, Update
 from telegram.ext import (
@@ -8,6 +10,8 @@ from telegram.ext import (
     MessageHandler,
     filters,
 )
+
+from LangchainInterface import LangchainInterface
 
 logging.basicConfig(
     format="%(asctime)s - %(name)s - %(levelname)s - %(message)s", level=logging.INFO
@@ -33,13 +37,19 @@ async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
 
 
 async def normal_message(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    # Echoes user message
-    await update.message.reply_text("Hi! I'm not smart enough to reply you yet...")
+    # forward message to langchain, wait for reply from langchain
+    answer = lc.query_agent(update.message.text)
+
+    # reply user
+    await update.message.reply_text(answer)
+
+
+lc = LangchainInterface()
 
 
 def main() -> None:
-    # Placeholder, bot token to be put in secrets of whatever hosting service we choose
-    TELEGRAM_TOKEN = "placeholder"
+    dotenv.load_dotenv()
+    TELEGRAM_TOKEN = os.environ.get("TELEGRAM_API_KEY")
 
     application = Application.builder().token(TELEGRAM_TOKEN).build()
 
