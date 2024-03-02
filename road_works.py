@@ -13,7 +13,7 @@ class RoadWorks:
         headers = {'AccountKey': api_key}
         self.response = requests.get(api_url, headers=headers)
 
-    def download_all(self, output_file='data.csv'):
+    def download_all(self, output_file='road_works.csv'):
         total = len(self.response.json()["value"])
         now = datetime.datetime.now()
         timestamp = now.strftime("%Y%m%d_%H%M%S")
