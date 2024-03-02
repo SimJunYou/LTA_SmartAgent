@@ -28,7 +28,7 @@ class Navigation:
     """
 
     def __init__(self, start_lat, start_lon, end_lat, end_lon,
-                 google_api_key='AIzaSyAOUk1VSUnlGJDcmhFQG3vdGWpkJFCdN1o'):
+                 google_api_key):
 
         self.origin = start_lat + ',' + start_lon
         self.destination = end_lat + ',' + end_lon
