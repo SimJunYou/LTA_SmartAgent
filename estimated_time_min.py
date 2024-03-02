@@ -7,7 +7,7 @@ class EstimatedTravelTime:
     The module will download estimated_travel_time from LTA data mall into the current working dir.
     Call download_all method with an output file name to append the data
     """
-    def __init__(self, api_key='DZ4mqxgDSyqDNLVqkIMCog=='):
+    def __init__(self, api_key):
         api_url = 'http://datamall2.mytransport.sg/ltaodataservice/EstTravelTimes'
         headers = {'AccountKey': api_key}
         self.response = requests.get(api_url, headers=headers)

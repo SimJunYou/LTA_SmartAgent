@@ -9,7 +9,7 @@ class TrafficImages:
     The module will download all the 90 images from LTA data mall into the current working dir.
     Call retrieve_image(camera_id) method to retrieve a specific image given a specific camera
     """
-    def __init__(self, camera_id='all', api_key='DZ4mqxgDSyqDNLVqkIMCog=='):
+    def __init__(self, camera_id='all'):
         api_url = 'http://datamall2.mytransport.sg/ltaodataservice/Traffic-Imagesv2'
         headers = {'AccountKey': api_key}
         self.camera_id = str(camera_id)
