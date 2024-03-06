@@ -34,8 +34,8 @@ def use_carpark_api():
     Area: [type] [description]
     ...
     """
-    CarPark = CarPark(DATAMALL_API_KEY)
-    return CarPark.response
+    carPark = CarPark(DATAMALL_API_KEY)
+    return carPark.response
 
 
 class LangchainInterface:
