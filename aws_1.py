@@ -41,9 +41,18 @@ df = pd.read_csv("carparking.csv")
 try:
     engine = create_engine(connection_str)
     with engine.connect() as conn:
-        df.to_sql("carpark", conn, if_exists="replace", index=False)
+        df.to_sql(
+            "carpark", conn, index=False
+        )  # only used when table does not exist in database
+        df.to_sql(
+            "carpark", conn, if_exists="replace", index=False
+        )  # replace contents of existing table
+        df.to_sql(
+            "carpark", conn, if_exists="append", index=False
+        )  # append contents to existing table
         conn.commit()
         res_df = pd.read_sql(text("SELECT * FROM carpark LIMIT 5"), conn)
         print(res_df)
+    # automatically close connection
 except Exception as err:
     print(f"Error querying: {err}")
