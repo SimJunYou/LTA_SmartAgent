@@ -1,6 +1,7 @@
 import os
 import logging
 import dotenv
+from collections import defaultdict
 
 from telegram import ForceReply, Update
 from telegram.ext import (
@@ -20,6 +21,7 @@ logging.basicConfig(
 logging.getLogger("httpx").setLevel(logging.WARNING)
 
 logger = logging.getLogger(__name__)
+conversation_history = defaultdict(list)
 
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -37,11 +39,26 @@ async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
 
 
 async def normal_message(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    # forward message to langchain, wait for reply from langchain
-    answer = lc.query_agent(update.message.text)
+    user_id = update.effective_user.id
+    user_message = update.message.text
 
-    # reply user
+    # Update conversation history for the user
+    conversation_history[user_id].append(user_message)
+
+    # Create a combined prompt with the conversation history
+    combined_prompt = "\n".join(conversation_history[user_id])
+
+    # Forward the combined prompt to Langchain
+    answer = lc.query_agent(combined_prompt)
+
+    # Reply to the user
     await update.message.reply_text(answer)
+
+    # Limit the length of the conversation history to prevent it from growing indefinitely.
+    max_history_length = 10
+    if len(conversation_history[user_id]) > max_history_length:
+        conversation_history[user_id].pop(0)  # Remove the oldest message
+
 
 
 lc = LangchainInterface()
