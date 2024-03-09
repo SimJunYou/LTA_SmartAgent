@@ -34,3 +34,37 @@ except Exception as e:
 endpoint = db_instance["Endpoint"]["Address"]
 port = db_instance["Endpoint"]["Port"]
 connection_str = f"postgresql://{DB_USER}:{DB_PASSWORD}@{endpoint}:{port}/{DB_NAME}"
+
+# Define your table creation statement (CARPARK)
+create_table_query = """
+CREATE TABLE carpark(
+    carparkid INTEGER PRIMARY KEY,
+    area TEXT NOT NULL,
+    development TEXT NOT NULL, 
+    location TEXT NOT NULL,
+    availablelots INTEGER NOT NULL,
+    lottype TEXT NOT NULL,
+    agency TEXT NOT NULL,
+    timestamp TIMESTAMP);
+"""
+
+try:
+    # Connect to the RDS instance
+    connection = psycopg2.connect(
+        host=endpoint,
+        port=port,
+        database=DB_NAME,
+        user=DB_USER,
+        password=DB_PASSWORD
+    )
+    cursor = connection.cursor()
+    cursor.execute(create_table_query)
+    connection.commit()  # Commit changes to the database
+    print("Table created successfully!")
+except Exception as err:
+    print(f"Error creating table: {err}")
+finally:
+    if connection:
+        connection.close()  # Always close the connection
+        print("Connection closed.")
+
