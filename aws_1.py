@@ -2,8 +2,7 @@ import boto3
 import botocore
 import os
 import pandas as pd
-import psycopg2
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, text
 import dotenv
 
 dotenv.load_dotenv()
@@ -34,17 +33,17 @@ except Exception as e:
 # Extract endpoint address and port (assuming successful description)
 endpoint = db_instance["Endpoint"]["Address"]
 port = db_instance["Endpoint"]["Port"]
-
-print(f"RDS endpoint: {endpoint}:{port}")
+connection_str = f"postgresql://{DB_USER}:{DB_PASSWORD}@{endpoint}:{port}/{DB_NAME}"
 
 # Connect to the database end point
+df = pd.read_csv("carparking.csv")
+
 try:
-    connection = psycopg2.connect(
-        host=db_instance["Endpoint"],
-        database=DB_NAME,
-        user=DB_USER,
-        password=DB_PASSWORD,
-    )
+    engine = create_engine(connection_str)
+    with engine.connect() as conn:
+        df.to_sql("carpark", conn, if_exists="replace", index=False)
+        conn.commit()
+        res_df = pd.read_sql(text("SELECT * FROM carpark LIMIT 5"), conn)
+        print(res_df)
 except Exception as err:
-    print(f"Error connecting to RDS: {err}")
-    exit(1)
+    print(f"Error querying: {err}")
