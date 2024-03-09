@@ -19,8 +19,7 @@ class TrafficImages:
 
     def download_all(self):
         tot_cam = len(self.response.json()["value"])
-        now = datetime.datetime.now()
-        timestamp = now.strftime("%Y%m%d_%H%M%S")
+        timestamp = datetime.datetime.now()
         camera_id = []
         latitude = []
         longitude = []

@@ -14,8 +14,7 @@ class ERP_Rates:
 
     def download_all(self, output_file='erp_rates.csv'):
         total = len(self.response.json()["value"])
-        now = datetime.datetime.now()
-        timestamp = now.strftime("%Y%m%d_%H%M%S")
+        timestamp = datetime.datetime.now()
 
         vehicle_type = []
         day_type = []

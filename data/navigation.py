@@ -4,8 +4,6 @@ from bs4 import BeautifulSoup
 from urllib.parse import urlencode
 
 
-# import json
-
 class Navigation:
     """
     The module will provide the steps to go from starting point to destination

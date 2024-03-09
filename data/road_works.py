@@ -15,8 +15,7 @@ class RoadWorks:
 
     def download_all(self, output_file='road_works.csv'):
         total = len(self.response.json()["value"])
-        now = datetime.datetime.now()
-        timestamp = now.strftime("%Y%m%d_%H%M%S")
+        timestamp = datetime.datetime.now()
         if total == 0:
             print('No road opening at the moment')
             return None

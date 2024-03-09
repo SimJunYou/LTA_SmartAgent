@@ -15,8 +15,7 @@ class FaultyTrafficLights:
 
     def download_all(self, output_file='faulty_traffic_lights.csv'):
         total = len(self.response.json()["value"])
-        now = datetime.datetime.now()
-        timestamp = now.strftime("%Y%m%d_%H%M%S")
+        timestamp = datetime.datetime.now()
         if total == 0:
             print('There is no fault traffic light at', timestamp)
             return None

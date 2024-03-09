@@ -17,8 +17,7 @@ class TrafficSpeedBands:
 
     def download_all(self, output_file='traffic_speed_bands.csv'):
         total = len(self.response.json()["value"])
-        now = datetime.datetime.now()
-        timestamp = now.strftime("%Y%m%d_%H%M%S")
+        timestamp = datetime.datetime.now()
         if total == 0:
             print('No data at the moment')
             return None

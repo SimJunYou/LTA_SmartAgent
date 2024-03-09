@@ -17,26 +17,25 @@ class VMS:
 
     def download_all(self, output_file='data.csv'):
         total = len(self.response.json()["value"])
-        now = datetime.datetime.now()
-        timestamp = now.strftime("%Y%m%d_%H%M%S")
+        timestamp = datetime.datetime.now()
         if total == 0:
             print('No data at the moment')
             return None
 
-        equiment_id = []
+        equipment_id = []
         lat = []
         lon = []
         message = []
 
         for i in range(0, total):
-            equiment_id.append(self.response.json()["value"][i]["EquipmentID"])
+            equipment_id.append(self.response.json()["value"][i]["EquipmentID"])
             lat.append(self.response.json()["value"][i]["Latitude"])
             lon.append(self.response.json()["value"][i]["Longitude"])
             message.append(self.response.json()["value"][i]["Message"])
 
         # Create a DataFrame with the extracted data
         data = pd.DataFrame({
-            "EquipmentID": equiment_id,
+            "EquipmentID": equipment_id,
             "Latitude": lat,
             "Longitude": lon,
             "Message": message,

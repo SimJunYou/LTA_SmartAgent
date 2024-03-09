@@ -14,8 +14,7 @@ class EstimatedTravelTime:
 
     def download_all(self, output_file='estimated_time_min.csv'):
         total = len(self.response.json()["value"])
-        now = datetime.datetime.now()
-        timestamp = now.strftime("%Y%m%d_%H%M%S")
+        timestamp = datetime.datetime.now()
         name = []
         direction = []
         farendpoint = []
