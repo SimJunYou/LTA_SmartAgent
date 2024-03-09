@@ -43,3 +43,62 @@ try:
 except Exception as err:
     print(f"Error connecting to RDS: {err}")
     exit(1)
+
+
+# Define your table creation statement (CARPARK)
+create_table_query = """
+CREATE TABLE carpark(
+    carparkid INTEGER PRIMARY KEY,
+    area TEXT NOT NULL,
+    development TEXT NOT NULL, 
+    location TEXT NOT NULL,
+    availablelots INTEGER NOT NULL,
+    lottype TEXT NOT NULL,
+    agency TEXT NOT NULL,
+    timestamp TIMESTAMP);
+"""
+
+try:
+    cursor = connection.cursor()
+    cursor.execute(create_table_query)
+    connection.commit()  # Commit changes to the database
+    print("Table created successfully!")
+except Exception as err:
+    print(f"Error creating table: {err}")
+
+# Insert record statement
+insert_record_query = """
+INSERT INTO account(username, password, email, created_on)
+VALUES
+('Minh', 'password','minh@mail.com', CURRENT_TIMESTAMP)
+"""
+
+try:
+    cursor = connection.cursor()
+    cursor.execute(insert_record_query)
+    connection.commit()  # Commit changes to the database
+    print("Record inserted successfully!")
+except Exception as err:
+    print(f"Error inserting record: {err}")
+
+
+# Table query statement
+select_table_query = """
+SELECT * FROM account;
+"""
+
+try:
+    cursor = connection.cursor()
+    cursor.execute(select_table_query)
+    connection.commit()  # Commit changes to the database
+    all_records = cursor.fetchall()
+    # Create a DataFrame from the fetched data
+    df = pd.DataFrame(all_records, columns=[col_name.name for col_name in cursor.description])  # Get column names
+
+except Exception as err:
+    print(f"Error select table: {err}")
+#finally:
+#    if connection:
+#        connection.close()  # Always close the connection
+#        print("Connection closed.")
+df
