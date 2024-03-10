@@ -22,18 +22,17 @@ class CarPark:
 
     def download_local(self, output_file="carpark.csv"):
         total = len(self.response.json()["value"])
-        timestamp = datetime.datetime.now()
-        # timestamp = now.strftime("%Y%m%d_%H%M%S")
-        carpark_id = []
+        carparkid = []
         area = []
         development = []
         location = []
         availablelots = []
         lottype = []
         agency = []
+        timestamp = datetime.datetime.now()
 
         for i in range(0, total):
-            carpark_id.append(self.response.json()["value"][i]["CarParkID"])
+            carparkid.append(self.response.json()["value"][i]["CarParkID"])
             area.append(self.response.json()["value"][i]["Area"])
             development.append(self.response.json()["value"][i]["Development"])
             location.append(self.response.json()["value"][i]["Location"])
@@ -44,7 +43,7 @@ class CarPark:
         # Create a DataFrame with the extracted data
         data = pd.DataFrame(
             {
-                "carparkid": carpark_id,
+                "carparkid": carparkid,
                 "area": area,
                 "development": development,
                 "location": location,
@@ -67,41 +66,6 @@ class CarPark:
         return data
 
     def download_s3(self, output_file="carpark.csv"):
-        total = len(self.response.json()["value"])
-        timestamp = datetime.datetime.now()
-        # timestamp = now.strftime("%Y%m%d_%H%M%S")
-        carpark_id = []
-        area = []
-        development = []
-        location = []
-        availablelots = []
-        lottype = []
-        agency = []
-
-        for i in range(0, total):
-            carpark_id.append(self.response.json()["value"][i]["CarParkID"])
-            area.append(self.response.json()["value"][i]["Area"])
-            development.append(self.response.json()["value"][i]["Development"])
-            location.append(self.response.json()["value"][i]["Location"])
-            availablelots.append(self.response.json()["value"][i]["AvailableLots"])
-            lottype.append(self.response.json()["value"][i]["LotType"])
-            agency.append(self.response.json()["value"][i]["Agency"])
-
-        # Create a DataFrame with the extracted data
-        data = pd.DataFrame(
-            {
-                "carparkid": carpark_id,
-                "area": area,
-                "development": development,
-                "location": location,
-                "availablelots": availablelots,
-                "lottype": lottype,
-                "agency": agency,
-            }
-        )
-        data["timestamp"] = timestamp
-        print("Download all completed, updating to", output_file)
-        
+        data = self.download_local(self, output_file)
         upload_to_s3('carpark', data)
-
         return data

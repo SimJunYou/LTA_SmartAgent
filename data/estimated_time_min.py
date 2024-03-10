@@ -2,6 +2,9 @@ import requests
 import pandas as pd
 import datetime
 import os
+from aws import AWS
+from data_utils import upload_to_s3
+
 class EstimatedTravelTime:
     """
     The module will download estimated_travel_time from LTA data mall into the current working dir.
@@ -11,16 +14,17 @@ class EstimatedTravelTime:
         api_url = 'http://datamall2.mytransport.sg/ltaodataservice/EstTravelTimes'
         headers = {'AccountKey': api_key}
         self.response = requests.get(api_url, headers=headers)
+        self.s3 = AWS().s3
 
-    def download_all(self, output_file='estimated_time_min.csv'):
+    def download_local(self, output_file='esttraveltimes.csv'):
         total = len(self.response.json()["value"])
-        timestamp = datetime.datetime.now()
         name = []
         direction = []
         farendpoint = []
         startpoint = []
         endpoint = []
-        est_min = []
+        esttime = []
+        timestamp = datetime.datetime.now()
 
         for i in range(0, total):
             name.append(self.response.json()["value"][i]["Name"])
@@ -28,18 +32,18 @@ class EstimatedTravelTime:
             farendpoint.append(self.response.json()["value"][i]["FarEndPoint"])
             startpoint.append(self.response.json()["value"][i]["StartPoint"])
             endpoint.append(self.response.json()["value"][i]["EndPoint"])
-            est_min.append(self.response.json()["value"][i]["EstTime"])
+            esttime.append(self.response.json()["value"][i]["EstTime"])
 
         # Create a DataFrame with the extracted data
         data = pd.DataFrame({
-            "Name": name,
-            "Direction": direction,
-            "FarEndPoint": farendpoint,
-            "StartPoint": startpoint,
-            "EndPoint": endpoint,
-            "EstTime(Min)": est_min,
+            "name": name,
+            "direction": direction,
+            "farendpoint": farendpoint,
+            "startpoint": startpoint,
+            "endpoint": endpoint,
+            "esttime": esttime,
         })
-        data['Timestamp'] = timestamp
+        data['timestamp'] = timestamp
         print('Download all completed, updating to', output_file)
         # Check if the file exists
         if os.path.exists(output_file):
@@ -50,4 +54,9 @@ class EstimatedTravelTime:
             # File does not exist, create a new one
             print("Creating new", output_file)
             data.to_csv(output_file, index=False)
+        return data
+
+    def download_s3(self, output_file="esttraveltimes.csv"):
+        data = self.download_local(self, output_file)
+        upload_to_s3('esttraveltimes', data)
         return data

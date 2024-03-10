@@ -17,7 +17,8 @@ create_table_query = """
                 endtime TIME,
                 zoneid TEXT,
                 chargeamount DECIMAL,
-                effectivedate DATE
+                effectivedate DATE,
+                timestamp TIMESTAMP
             );
 
             CREATE TABLE esttraveltimes(
@@ -26,7 +27,8 @@ create_table_query = """
                 farendoint TEXT,
                 startpoint TEXT,
                 endpoint TEXT,
-                esttime INT
+                esttime INT,
+                timestamp TIMESTAMP
             );
 
             CREATE TABLE faultytrafficlights (
@@ -35,7 +37,8 @@ create_table_query = """
                 type INT,
                 startdate TIMESTAMP,
                 enddate TIMESTAMP,
-                message TEXT
+                message TEXT,
+                timestamp TIMESTAMP
             );
 
             CREATE TABLE roadopenings (
@@ -44,7 +47,8 @@ create_table_query = """
                 enddate TEXT,
                 svcdept TEXT,
                 roadname TEXT,
-                other TEXT
+                other TEXT,
+                timestamp TIMESTAMP
             );
             CREATE TABLE roadworks (
                 eventid TEXT,
@@ -52,7 +56,8 @@ create_table_query = """
                 enddate TEXT,
                 svcdept TEXT,
                 roadname TEXT,
-                other TEXT
+                other TEXT,
+                timestamp TIMESTAMP
             );
 
             CREATE TABLE trafficimages (
@@ -66,7 +71,8 @@ create_table_query = """
                 type TEXT,
                 latitude DECIMAL,
                 longitude DECIMAL,
-                message TEXT
+                message TEXT,
+                timestamp TIMESTAMP
             );
 
             CREATE TABLE trafficspeedbands (
@@ -80,13 +86,15 @@ create_table_query = """
                 startlat DECIMAL,
                 endlon DECIMAL,
                 endlat DECIMAL,
+                timestamp TIMESTAMP
             );
 
             CREATE TABLE vms(
                 equipmentid TEXT,
                 latitude DECIMAL,
                 longitude DECIMAL,
-                message TEXT
+                message TEXT,
+                timestamp TIMESTAMP
             );
 
 
