@@ -166,6 +166,7 @@ class AWS:
             response = self.s3.list_objects(Bucket=bucket_name)
             keys = [content['Key'] for content in response['Contents']]
             print(keys)
+            return keys
         
         def readObject(self, bucket_name, key):
             # Read a CSV 
@@ -175,11 +176,14 @@ class AWS:
 
         def upload(self, bucket_name, file_to_upload, output_filename):
             # Upload a csv
-            self.s3.put_object(
-                Body=file_to_upload,              # file to upload 
-                Bucket=bucket_name,
-                Key=output_filename,               # file name in S3
-            )
+            with open(file_to_upload, 'rb') as f:  # Open the file in binary read mode
+                self.s3.put_object(
+                    Body=f,              # Read the file's contents
+                    Bucket=bucket_name,
+                    Key=output_filename
+                )
+
+            print(f'File uploaded to S3://{bucket_name}/{output_filename}')
 
     class RDS:
         def __init__(self, session):
@@ -290,15 +294,16 @@ class AWS:
             # TODO: Define table_queries as a constant, put in a constants file, double check definitions - type and NOT NULL
             # Define your table creation statement (CARPARK)
             create_table_query = """
-            CREATE TABLE carpark2(
-                carparkid TEXT PRIMARY KEY,
-                area TEXT NOT NULL,
-                development TEXT NOT NULL, 
-                location TEXT NOT NULL,
-                availablelots INTEGER NOT NULL,
-                lottype TEXT NOT NULL,
-                agency TEXT NOT NULL,
-                timestamp TIMESTAMP);
+            CREATE TABLE carpark(
+                carparkid TEXT,
+                area TEXT,
+                development TEXT,
+                location TEXT,
+                availablelots INTEGER,
+                lottype TEXT,
+                agency TEXT,
+                timestamp TIMESTAMP
+            );
             """
 
             try:
@@ -326,7 +331,7 @@ class AWS:
             connection_str = f"postgresql://{DB_USER}:{DB_PASSWORD}@{endpoint}:{port}/{DB_NAME}"
             try:
                 # TODO: Read from s3
-                df = pd.read_csv(f'{table_name}.csv')    
+                df = pd.read_csv(f'{table_name}.csv')
             except Exception as e:
                 print(f"Error reading csv: {e}")
 
