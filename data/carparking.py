@@ -66,6 +66,15 @@ class CarPark:
         return data
 
     def download_s3(self, output_file="carpark.csv"):
-        data = self.download_local(self, output_file)
+        data = self.download_local(output_file)
         upload_to_s3('carpark', data)
         return data
+
+    def main():
+        from aws import AWS
+        cp = CarPark()
+        cp.download_local()
+        print("Download complete")
+
+    if __name__ == "__main__":
+        main()

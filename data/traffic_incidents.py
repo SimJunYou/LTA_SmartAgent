@@ -55,6 +55,6 @@ class TrafficIncidents:
             data.to_csv(output_file, index=False)
         return data
     def download_s3(self, output_file="trafficincidents.csv"):
-        data = self.download_local(self, output_file)
+        data = self.download_local(output_file)
         upload_to_s3('trafficincidents', data)
         return data
