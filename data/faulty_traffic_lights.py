@@ -2,6 +2,9 @@ import requests
 import pandas as pd
 import datetime
 import os
+from aws import AWS
+from data_utils import upload_to_s3
+
 class FaultyTrafficLights:
     """
     The module will download alerts of traffic lights currently faulty or undergoing maintenance from LTA data mall into the current working dir.
@@ -12,39 +15,40 @@ class FaultyTrafficLights:
         api_url = 'http://datamall2.mytransport.sg/ltaodataservice/FaultyTrafficLights'
         headers = {'AccountKey': api_key}
         self.response = requests.get(api_url, headers=headers)
+        self.s3 = AWS().s3
 
-    def download_all(self, output_file='faulty_traffic_lights.csv'):
+    def download_local(self, output_file='faultytrafficlights.csv'):
         total = len(self.response.json()["value"])
         timestamp = datetime.datetime.now()
         if total == 0:
             print('There is no fault traffic light at', timestamp)
             return None
 
-        alarm_id = []
-        node_id = []
-        alarm_type = []
-        start_date = []
-        end_date = []
+        alarmid = []
+        nodeid = []
+        type = []
+        startdate = []
+        enddate = []
         message = []
 
         for i in range(0, total):
-            alarm_id.append(self.response.json()["value"][i]["AlarmID"])
-            node_id.append(self.response.json()["value"][i]["NodeID"])
-            alarm_type.append(self.response.json()["value"][i]["Type"])
-            start_date.append(self.response.json()["value"][i]["StartDate"])
-            end_date.append(self.response.json()["value"][i]["EndDate"])
+            alarmid.append(self.response.json()["value"][i]["AlarmID"])
+            nodeid.append(self.response.json()["value"][i]["NodeID"])
+            type.append(self.response.json()["value"][i]["Type"])
+            startdate.append(self.response.json()["value"][i]["StartDate"])
+            enddate.append(self.response.json()["value"][i]["EndDate"])
             message.append(self.response.json()["value"][i]["Message"])
 
         # Create a DataFrame with the extracted data
         data = pd.DataFrame({
-            "AlarmID": alarm_id,
-            "NodeID": node_id,
-            "Type": alarm_type,
-            "StartDate": start_date,
-            "EndDate": end_date,
-            "Message": message,
+            "alarmid": alarmid,
+            "nodeid": nodeid,
+            "type": type,
+            "startdate": startdate,
+            "enddate": enddate,
+            "message": message,
         })
-        data['Timestamp'] = timestamp
+        data['timestamp'] = timestamp
         print('Download all completed, updating to', output_file)
         # Check if the file exists
         if os.path.exists(output_file):
@@ -55,4 +59,8 @@ class FaultyTrafficLights:
             # File does not exist, create a new one
             print("Creating new", output_file)
             data.to_csv(output_file, index=False)
+        return data
+    def download_s3(self, output_file="faultytrafficlights.csv"):
+        data = self.download_local(self, output_file)
+        upload_to_s3('faultytrafficlights', data)
         return data

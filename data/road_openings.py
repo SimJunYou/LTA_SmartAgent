@@ -2,6 +2,8 @@ import requests
 import pandas as pd
 import datetime
 import os
+from aws import AWS
+from data_utils import upload_to_s3
 
 class RoadOpenings:
     """
@@ -12,39 +14,40 @@ class RoadOpenings:
         api_url = 'http://datamall2.mytransport.sg/ltaodataservice/RoadOpenings'
         headers = {'AccountKey': api_key}
         self.response = requests.get(api_url, headers=headers)
+        self.s3 = AWS().s3
 
-    def download_all(self, output_file='road_openings.csv'):
+    def download_local(self, output_file='roadopenings.csv'):
         total = len(self.response.json()["value"])
         timestamp = datetime.datetime.now()
         if total == 0:
             print('No road opening at the moment')
             return None
 
-        event_id = []
-        start_date = []
-        end_date = []
-        svc_dept = []
-        road_name = []
+        eventid = []
+        startdate = []
+        enddate = []
+        svcdept = []
+        roadname = []
         other = []
 
         for i in range(0, total):
-            event_id.append(self.response.json()["value"][i]["EventID"])
-            start_date.append(self.response.json()["value"][i]["StartDate"])
-            end_date.append(self.response.json()["value"][i]["EndDate"])
-            svc_dept.append(self.response.json()["value"][i]["SvcDept"])
-            road_name.append(self.response.json()["value"][i]["RoadName"])
+            eventid.append(self.response.json()["value"][i]["EventID"])
+            startdate.append(self.response.json()["value"][i]["StartDate"])
+            enddate.append(self.response.json()["value"][i]["EndDate"])
+            svcdept.append(self.response.json()["value"][i]["SvcDept"])
+            roadname.append(self.response.json()["value"][i]["RoadName"])
             other.append(self.response.json()["value"][i]["Other"])
 
         # Create a DataFrame with the extracted data
         data = pd.DataFrame({
-            "EventID": event_id,
-            "StartDate": start_date,
-            "EndDate": end_date,
-            "SvcDept": svc_dept,
-            "RoadName": road_name,
-            "Other": other,
+            "eventid": eventid,
+            "startdate": startdate,
+            "enddate": enddate,
+            "svcdept": svcdept,
+            "roadname": roadname,
+            "other": other,
         })
-        data['Timestamp'] = timestamp
+        data['timestamp'] = timestamp
         print('Download all completed, updating to', output_file)
         # Check if the file exists
         if os.path.exists(output_file):
@@ -55,4 +58,8 @@ class RoadOpenings:
             # File does not exist, create a new one
             print("Creating new", output_file)
             data.to_csv(output_file, index=False)
+        return data
+    def download_s3(self, output_file="roadopenings.csv"):
+        data = self.download_local(self, output_file)
+        upload_to_s3('roadopenings', data)
         return data

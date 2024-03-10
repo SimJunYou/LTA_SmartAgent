@@ -4,6 +4,9 @@ import datetime
 import urllib.request
 import matplotlib.image as img
 import matplotlib.pyplot as plt
+from aws import AWS
+from data_utils import upload_to_s3
+
 class TrafficImages:
     """
     The module will download all the 90 images from LTA data mall into the current working dir.
@@ -16,20 +19,21 @@ class TrafficImages:
         self.response = requests.get(api_url, headers=headers)
         self.image_data = self.download_all()
         self.camera_list = self.image_data['CameraID'].tolist()
+        self.s3 = AWS().s3
 
-    def download_all(self):
+    def download_local(self):
         tot_cam = len(self.response.json()["value"])
         timestamp = datetime.datetime.now()
-        camera_id = []
+        cameraid = []
         latitude = []
         longitude = []
-        image_link = []
+        imagelink = []
         filename = []
         for i in range(0, tot_cam):
-            camera_id.append(self.response.json()["value"][i]["CameraID"])
+            cameraid.append(self.response.json()["value"][i]["CameraID"])
             latitude.append(self.response.json()["value"][i]["Latitude"])
             longitude.append(self.response.json()["value"][i]["Longitude"])
-            image_link.append(self.response.json()["value"][i]["ImageLink"])
+            imagelink.append(self.response.json()["value"][i]["ImageLink"])
             filename.append(self.response.json()["value"][i]["CameraID"] + '_' + timestamp + '.jpg')
 
             urllib.request.urlretrieve(self.response.json()["value"][i]["ImageLink"],
@@ -37,11 +41,11 @@ class TrafficImages:
 
         # Create a DataFrame with the extracted data
         data = pd.DataFrame({
-            "CameraID": camera_id,
-            "Latitude": latitude,
+            "cameraid": cameraid,
+            "latitude": latitude,
             "Longitude": longitude,
-            "ImageLink": image_link,
-            "Filename": filename,
+            "imagelink": imagelink,
+            "filename": filename,
         })
         if self.camera_id == 'all':
             print('Download all completed \n', data.head(5))
@@ -63,3 +67,16 @@ class TrafficImages:
         else:
             print('Camera ID not valid')
             return None
+
+    def download_s3(self):
+        data = self.download_local(self)
+        # Get a list of filenames from the DataFrame column
+        filenames = data['filename'].tolist()
+        # Iterate through each filename and upload using your function
+        for filename in filenames:
+            try:
+                self.upload('dba5102', filename, filename)  # Call your upload function
+                print(f"Uploaded: {filename}")
+            except Exception as e:
+                print(f"Error uploading {filename}: {e}")
+        return
