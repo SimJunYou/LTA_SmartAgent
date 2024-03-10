@@ -9,6 +9,7 @@ import pandas as pd
 from sqlalchemy import create_engine, text
 
 import utils.account_constants as cst
+import utils.create_table_query as create_tables
 dotenv.load_dotenv()
 
 AWS_ACCESS_KEY = os.environ.get("AWS_ACCESS_KEY")
@@ -291,20 +292,8 @@ class AWS:
             print(response)
 
         def createTable(self, endpoint, port=5432):
-            # TODO: Define table_queries as a constant, put in a constants file, double check definitions - type and NOT NULL
-            # Define your table creation statement (CARPARK)
-            create_table_query = """
-            CREATE TABLE carpark(
-                carparkid TEXT,
-                area TEXT,
-                development TEXT,
-                location TEXT,
-                availablelots INTEGER,
-                lottype TEXT,
-                agency TEXT,
-                timestamp TIMESTAMP
-            );
-            """
+            # TODO: Test this
+            create_table_query = create_tables.CREATE_TABLE_QUERY
 
             try:
                 # Connect to the RDS instance

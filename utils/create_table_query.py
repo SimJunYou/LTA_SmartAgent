@@ -1,4 +1,4 @@
-create_table_query = """
+CREATE_TABLE_QUERY = """
             CREATE TABLE carpark(
                 carparkid TEXT,
                 area TEXT,
