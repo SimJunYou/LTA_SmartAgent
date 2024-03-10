@@ -29,6 +29,27 @@ class AWS:
         self.s3 = self.S3(self.session)
         self.rds = self.RDS(self.session, self.s3)
 
+    def start(self):
+        # Start EC2
+        self.ec2.startInstance(cst.EC2_INSTANCE_ID)
+        print("Starting EC2...")
+
+        # Start RDS
+        self.rds.create()
+        print("Starting RDS...")
+        # TODO: Run rds.createTable and updateTable after rds is ready
+
+    def stop(self):
+        # Delete and stop RDS
+        print("Deleting RDS...")
+        self.rds.deleteInstance(cst.DB_SUBNET_GROUP_NAME)
+        print("Deleted RDS")
+
+        # Stop EC2
+        self.ec2.stopInstance(cst.EC2_INSTANCE_ID)
+        # self.ec2.terminateInstance(cst.EC2_INSTANCE_ID)
+        print("Stopped EC2")
+
     class EC2:
         def __init__(self, session):
             self.ec2 = session.client('ec2')
@@ -165,9 +186,13 @@ class AWS:
 
         def listObject(self, bucket_name):
             response = self.s3.list_objects(Bucket=bucket_name)
-            keys = [content['Key'] for content in response['Contents']]
-            print(keys)
-            return keys
+            try:
+                keys = [content['Key'] for content in response['Contents']]
+                print(keys)
+                return keys
+            except Exception as e:
+                print("Error listing, bucket may be empty")
+
         
         def readObject(self, bucket_name, key):
             # Read a CSV 
@@ -221,7 +246,7 @@ class AWS:
 
             print(f"RDS endpoint and port: {endpoint}:{port}")
 
-        def deleteInstance(self, db_subnet_group_name, instance_id='db5102-public'):
+        def deleteInstance(self, db_subnet_group_name=cst.DB_SUBNET_GROUP_NAME, instance_id='db5102-public'):
             # Delete the DB instance
             try:
                 response = self.rds.delete_db_instance(
@@ -253,8 +278,7 @@ class AWS:
                 print(f"Error deleting DB subnet group: {e}")
 
 
-        def create(self, subnet_ids=[cst.SUBNET_ID1, cst.SUBNET_ID2], security_group_id_rds=cst.SECURITY_GROUP_ID_RDS):
-            db_subnet_group_name = 'db5102-db-public-subnet-group'                 # public or private
+        def create(self, db_subnet_group_name = cst.DB_SUBNET_GROUP_NAME, subnet_ids=[cst.SUBNET_ID1, cst.SUBNET_ID2], security_group_id_rds=cst.SECURITY_GROUP_ID_RDS):
             response = self.rds.create_db_subnet_group(
                 DBSubnetGroupName=db_subnet_group_name,
                 DBSubnetGroupDescription='LTA Innovation Challenge DB public subnet group',         # public or private
