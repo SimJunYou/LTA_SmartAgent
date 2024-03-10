@@ -41,16 +41,16 @@ class CarPark:
         # Create a DataFrame with the extracted data
         data = pd.DataFrame(
             {
-                "CarParkID": carpark_id,
-                "Area": area,
-                "Development": development,
-                "Location": location,
-                "AvailableLots": availablelots,
-                "LotType": lottype,
-                "Agency": agency,
+                "carparkid": carpark_id,
+                "area": area,
+                "development": development,
+                "location": location,
+                "availablelots": availablelots,
+                "lottype": lottype,
+                "agency": agency,
             }
         )
-        data["Timestamp"] = timestamp
+        data["timestamp"] = timestamp
         print("Download all completed, updating to", output_file)
         # Check if the file exists
         if os.path.exists(output_file):
