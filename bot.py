@@ -60,7 +60,6 @@ async def normal_message(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
         conversation_history[user_id].pop(0)  # Remove the oldest message
 
 
-
 lc = LangchainInterface()
 
 

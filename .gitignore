@@ -2,3 +2,6 @@
 *.csv
 /.vscode
 /__pycache__
+data/__pycache__
+utils/__pycache__
+*.pyc
