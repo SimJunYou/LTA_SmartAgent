@@ -27,7 +27,7 @@ class AWS:
                         region_name= REGION_NAME)
         self.ec2 = self.EC2(self.session)
         self.s3 = self.S3(self.session)
-        self.rds = self.RDS(self.session)
+        self.rds = self.RDS(self.session, self.s3)
 
     class EC2:
         def __init__(self, session):
@@ -187,8 +187,9 @@ class AWS:
             print(f'File uploaded to S3://{bucket_name}/{output_filename}')
 
     class RDS:
-        def __init__(self, session):
+        def __init__(self, session, s3):
             self.rds = session.client('rds')
+            self.s3 = s3
 
         def listInstance(self):
             # List existing RDS instances
@@ -344,8 +345,7 @@ class AWS:
         def updateTable(self, table_name, endpoint, port=5432):
             connection_str = f"postgresql://{DB_USER}:{DB_PASSWORD}@{endpoint}:{port}/{DB_NAME}"
             try:
-                # TODO: Read from s3
-                df = pd.read_csv(f'{table_name}.csv')
+                df = self.s3.readObject('dba5102', f'{table_name}.csv')
             except Exception as e:
                 print(f"Error reading csv: {e}")
 
