@@ -292,7 +292,6 @@ class AWS:
             print(response)
 
         def createTable(self, endpoint, port=5432):
-            # TODO: Test this
             create_table_query = create_tables.CREATE_TABLE_QUERY
 
             try:
@@ -311,6 +310,32 @@ class AWS:
                 print("Table created successfully!")
             except Exception as err:
                 print(f"Error creating table: {err}")
+            finally:
+                if connection:
+                    connection.close()  # Always close the connection
+                    print("Connection closed.")
+        
+        def dropTable(self, table_name, endpoint, port=5432):
+            drop_table_query = f"""
+            DROP TABLE IF EXISTS {table_name};
+            """
+
+            try:
+                # Connect to the RDS instance
+                connection = psycopg2.connect(
+                    host=endpoint,
+                    port=port,
+                    database=DB_NAME,
+                    user=DB_USER,
+                    password=DB_PASSWORD
+                )
+
+                cursor = connection.cursor()
+                cursor.execute(drop_table_query)
+                connection.commit()  # Commit changes to the database
+                print(f"Table {table_name} dropped successfully!")
+            except Exception as err:
+                print(f"Error dropping table: {err}")
             finally:
                 if connection:
                     connection.close()  # Always close the connection

@@ -79,7 +79,7 @@ CREATE_TABLE_QUERY = """
                 startlon DECIMAL,
                 startlat DECIMAL,
                 endlon DECIMAL,
-                endlat DECIMAL,
+                endlat DECIMAL
             );
 
             CREATE TABLE vms(
