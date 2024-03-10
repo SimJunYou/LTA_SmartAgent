@@ -3,7 +3,7 @@ import pandas as pd
 import datetime
 import os
 from aws import AWS
-from data_utils import upload_to_s3
+from data.data_utils import upload_to_s3
 
 
 class CarPark:

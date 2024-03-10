@@ -5,3 +5,5 @@ KEY_NAME = 'prod-ec2-key1'
 SECURITY_GROUP_ID = 'sg-02d3b51498c3adf5b' # Web security group, ID of the security group you want to add the instance to
 SECURITY_GROUP_ID_RDS = 'sg-0f211b59e94201cc6' # RDS Security Group
 INSTANCE_PROFILE = 'arn:aws:iam::329121819345:instance-profile/RDS_role_for_EC2'
+DB_SUBNET_GROUP_NAME = 'db5102-db-public-subnet-group'
+EC2_INSTANCE_ID = 'i-036c40edee469a9bb'

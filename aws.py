@@ -9,6 +9,7 @@ import pandas as pd
 from sqlalchemy import create_engine, text
 
 import utils.account_constants as cst
+import utils.create_table_query as create_tables
 dotenv.load_dotenv()
 
 AWS_ACCESS_KEY = os.environ.get("AWS_ACCESS_KEY")
@@ -26,7 +27,28 @@ class AWS:
                         region_name= REGION_NAME)
         self.ec2 = self.EC2(self.session)
         self.s3 = self.S3(self.session)
-        self.rds = self.RDS(self.session)
+        self.rds = self.RDS(self.session, self.s3)
+
+    def start(self):
+        # Start EC2
+        self.ec2.startInstance(cst.EC2_INSTANCE_ID)
+        print("Starting EC2...")
+
+        # Start RDS
+        self.rds.create()
+        print("Starting RDS...")
+        # TODO: Run rds.createTable and updateTable after rds is ready
+
+    def stop(self):
+        # Delete and stop RDS
+        print("Deleting RDS...")
+        self.rds.deleteInstance(cst.DB_SUBNET_GROUP_NAME)
+        print("Deleted RDS")
+
+        # Stop EC2
+        self.ec2.stopInstance(cst.EC2_INSTANCE_ID)
+        # self.ec2.terminateInstance(cst.EC2_INSTANCE_ID)
+        print("Stopped EC2")
 
     class EC2:
         def __init__(self, session):
@@ -164,9 +186,13 @@ class AWS:
 
         def listObject(self, bucket_name):
             response = self.s3.list_objects(Bucket=bucket_name)
-            keys = [content['Key'] for content in response['Contents']]
-            print(keys)
-            return keys
+            try:
+                keys = [content['Key'] for content in response['Contents']]
+                print(keys)
+                return keys
+            except Exception as e:
+                print("Error listing, bucket may be empty")
+
         
         def readObject(self, bucket_name, key):
             # Read a CSV 
@@ -186,8 +212,9 @@ class AWS:
             print(f'File uploaded to S3://{bucket_name}/{output_filename}')
 
     class RDS:
-        def __init__(self, session):
+        def __init__(self, session, s3):
             self.rds = session.client('rds')
+            self.s3 = s3
 
         def listInstance(self):
             # List existing RDS instances
@@ -219,7 +246,7 @@ class AWS:
 
             print(f"RDS endpoint and port: {endpoint}:{port}")
 
-        def deleteInstance(self, db_subnet_group_name, instance_id='db5102-public'):
+        def deleteInstance(self, db_subnet_group_name=cst.DB_SUBNET_GROUP_NAME, instance_id='db5102-public'):
             # Delete the DB instance
             try:
                 response = self.rds.delete_db_instance(
@@ -251,8 +278,7 @@ class AWS:
                 print(f"Error deleting DB subnet group: {e}")
 
 
-        def create(self, subnet_ids=[cst.SUBNET_ID1, cst.SUBNET_ID2], security_group_id_rds=cst.SECURITY_GROUP_ID_RDS):
-            db_subnet_group_name = 'db5102-db-public-subnet-group'                 # public or private
+        def create(self, db_subnet_group_name = cst.DB_SUBNET_GROUP_NAME, subnet_ids=[cst.SUBNET_ID1, cst.SUBNET_ID2], security_group_id_rds=cst.SECURITY_GROUP_ID_RDS):
             response = self.rds.create_db_subnet_group(
                 DBSubnetGroupName=db_subnet_group_name,
                 DBSubnetGroupDescription='LTA Innovation Challenge DB public subnet group',         # public or private
@@ -291,20 +317,7 @@ class AWS:
             print(response)
 
         def createTable(self, endpoint, port=5432):
-            # TODO: Define table_queries as a constant, put in a constants file, double check definitions - type and NOT NULL
-            # Define your table creation statement (CARPARK)
-            create_table_query = """
-            CREATE TABLE carpark(
-                carparkid TEXT,
-                area TEXT,
-                development TEXT,
-                location TEXT,
-                availablelots INTEGER,
-                lottype TEXT,
-                agency TEXT,
-                timestamp TIMESTAMP
-            );
-            """
+            create_table_query = create_tables.CREATE_TABLE_QUERY
 
             try:
                 # Connect to the RDS instance
@@ -326,12 +339,37 @@ class AWS:
                 if connection:
                     connection.close()  # Always close the connection
                     print("Connection closed.")
+        
+        def dropTable(self, table_name, endpoint, port=5432):
+            drop_table_query = f"""
+            DROP TABLE IF EXISTS {table_name};
+            """
+
+            try:
+                # Connect to the RDS instance
+                connection = psycopg2.connect(
+                    host=endpoint,
+                    port=port,
+                    database=DB_NAME,
+                    user=DB_USER,
+                    password=DB_PASSWORD
+                )
+
+                cursor = connection.cursor()
+                cursor.execute(drop_table_query)
+                connection.commit()  # Commit changes to the database
+                print(f"Table {table_name} dropped successfully!")
+            except Exception as err:
+                print(f"Error dropping table: {err}")
+            finally:
+                if connection:
+                    connection.close()  # Always close the connection
+                    print("Connection closed.")
 
         def updateTable(self, table_name, endpoint, port=5432):
             connection_str = f"postgresql://{DB_USER}:{DB_PASSWORD}@{endpoint}:{port}/{DB_NAME}"
             try:
-                # TODO: Read from s3
-                df = pd.read_csv(f'{table_name}.csv')
+                df = self.s3.readObject('dba5102', f'{table_name}.csv')
             except Exception as e:
                 print(f"Error reading csv: {e}")
 
