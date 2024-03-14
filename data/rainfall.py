@@ -51,6 +51,6 @@ class RainfallData:
             print("No rainfall data available for the specified datetime.")
 
     def download_s3(self, output_file="rainfall.csv"):
-        data = self.download_local(date_time, output_file)
-        upload_to_s3('rainfall_data', data, self.s3)
-        print(f"Data uploaded to S3: {output_file}")
+        data = self.download_local(output_file)
+        upload_to_s3('rainfall', data)
+        return data
