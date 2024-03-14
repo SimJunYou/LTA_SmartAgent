@@ -97,6 +97,32 @@ CREATE_TABLES_QUERY = """
                 timestamp TIMESTAMP
             );
 
+            CREATE TABLE airtemp (
+                stationid TEXT,
+                temperature DECIMAL,
+                stationname TEXT,
+                latitude DECIMAL,
+                longitude DECIMAL,
+                timestamp TIMESTAMP
+            );
+
+            CREATE TABLE rainfall (
+                stationid TEXT,
+                rainfall DECIMAL,
+                stationname TEXT,
+                latitude DECIMAL,
+                longitude DECIMAL,
+                timestamp TIMESTAMP
+            );
+
+            CREATE TABLE psi (
+                region TEXT,
+                area TEXT,
+                psi INTEGER,
+                psi_band TEXT,
+                timestamp TIMESTAMP
+            );
+
 
             """
 DROP_TABLES_QUERY = """
@@ -105,5 +131,6 @@ DROP_TABLES_QUERY = """
             esttraveltimes, faultytrafficlights,
             roadopenings, roadworks,
             trafficimages, trafficincidents,
-            trafficspeedbands, vms;
+            trafficspeedbands, vms,
+            airtemp, rainfall, psi;
             """
