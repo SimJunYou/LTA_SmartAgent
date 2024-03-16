@@ -65,6 +65,9 @@ class DataManager:
         for api_name in self.weather_apis:
             self.update_table(api_name)
 
+    def query(self, query):
+        return pd.DataFrame(self.database.run_query(query))
+
     def update_table(self, api_name):
         if api_name in self.datamall_apis:
             data = self.datamall.call(api_name)
