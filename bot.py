@@ -12,7 +12,7 @@ from telegram.ext import (
     filters,
 )
 
-from LangchainInterface import LangchainInterface
+from langchain_interface import LangchainInterface
 
 logging.basicConfig(
     format="%(asctime)s - %(name)s - %(levelname)s - %(message)s", level=logging.INFO
