@@ -123,6 +123,11 @@ CREATE_TABLES_QUERY = """
                 timestamp TIMESTAMP
             );
 
+            CREATE TABLE weatherforecast (
+                area TEXT,
+                forecast TEXT,
+                timestamp TIMESTAMP
+            );
 
             """
 DROP_TABLES_QUERY = """
@@ -132,5 +137,5 @@ DROP_TABLES_QUERY = """
             roadopenings, roadworks,
             trafficimages, trafficincidents,
             trafficspeedbands, vms,
-            airtemp, rainfall, psi;
+            airtemp, rainfall, psi, weatherforecast;
             """
