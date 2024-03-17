@@ -98,7 +98,7 @@ class Navigation_2:
                     newline = f'Option {k} takes {total_duration[k]} and is {total_distance[k]} long!'
                     file.writelines([newline, '\n'])
                     for line in clean_steps[k]:
-                        file.writelines(line)
+                        file.writelines(line + '\n')
                     file.writelines(['\n', '\n'])
 
             print('Navigation steps written successfully to', self.output_file)
@@ -158,3 +158,4 @@ class Navigation_2:
 
 # For free text search, try this
 #test.text_query('parking near'+test.destination, google_api_key)
+
