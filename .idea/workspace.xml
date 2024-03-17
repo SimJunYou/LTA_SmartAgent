@@ -5,12 +5,10 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="b94c2e74-c311-417c-a3c7-f17b1ea4b3ab" name="Changes" comment="">
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/langchain_interface.py" beforeDir="false" afterPath="$PROJECT_DIR$/langchain_interface.py" afterDir="false" />
     </list>
-    <list id="d6b46ae9-b091-48c3-a696-cad45ebeaf0b" name="Changes by JunYou" comment="">
-      <change beforePath="$PROJECT_DIR$/data_manager.py" beforeDir="false" afterPath="$PROJECT_DIR$/data_manager.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/langchain_interface.py" beforeDir="false" afterPath="$PROJECT_DIR$/langchain_interface.py" afterDir="false" />
-    </list>
+    <list id="d6b46ae9-b091-48c3-a696-cad45ebeaf0b" name="Changes by JunYou" comment="" />
     <list id="3f7ee45e-2ee5-47e4-a7e0-78bcb28c787e" name="Changes by kaien" comment="" />
     <list id="8dcf023a-9fa1-4812-be0d-7c98dfe11c58" name="Changes by linh.plh" comment="" />
     <option name="SHOW_DIALOG" value="false" />
@@ -25,26 +23,6 @@
       </map>
     </option>
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
-  </component>
-  <component name="LineStatusTrackerManager">
-    <file path="$PROJECT_DIR$/langchain_interface.py">
-      <ranges>
-        <range start1="0" end1="0" start2="0" end2="1" changelist="b94c2e74-c311-417c-a3c7-f17b1ea4b3ab" />
-        <range start1="2" end1="2" start2="3" end2="4" changelist="d6b46ae9-b091-48c3-a696-cad45ebeaf0b" />
-        <range start1="23" end1="24" start2="25" end2="25" changelist="d6b46ae9-b091-48c3-a696-cad45ebeaf0b" />
-        <range start1="32" end1="32" start2="33" end2="34" changelist="d6b46ae9-b091-48c3-a696-cad45ebeaf0b" />
-        <range start1="86" end1="87" start2="88" end2="91" changelist="d6b46ae9-b091-48c3-a696-cad45ebeaf0b" />
-        <range start1="108" end1="109" start2="112" end2="114" changelist="d6b46ae9-b091-48c3-a696-cad45ebeaf0b" />
-        <range start1="123" end1="125" start2="128" end2="137" changelist="d6b46ae9-b091-48c3-a696-cad45ebeaf0b" />
-        <range start1="127" end1="128" start2="139" end2="141" changelist="d6b46ae9-b091-48c3-a696-cad45ebeaf0b" />
-        <range start1="132" end1="133" start2="145" end2="146" changelist="d6b46ae9-b091-48c3-a696-cad45ebeaf0b" />
-        <range start1="135" end1="136" start2="148" end2="149" changelist="d6b46ae9-b091-48c3-a696-cad45ebeaf0b" />
-        <range start1="147" end1="148" start2="160" end2="162" changelist="d6b46ae9-b091-48c3-a696-cad45ebeaf0b" />
-        <range start1="171" end1="172" start2="185" end2="186" changelist="d6b46ae9-b091-48c3-a696-cad45ebeaf0b" />
-        <range start1="175" end1="175" start2="189" end2="324" changelist="b94c2e74-c311-417c-a3c7-f17b1ea4b3ab" />
-        <range start1="177" end1="179" start2="326" end2="327" changelist="d6b46ae9-b091-48c3-a696-cad45ebeaf0b" />
-      </ranges>
-    </file>
   </component>
   <component name="MarkdownSettingsMigration">
     <option name="stateVersion" value="1" />
@@ -63,6 +41,7 @@
     "Python.bot.executor": "Run",
     "Python.data_manager.executor": "Run",
     "Python.langchain_interface.executor": "Run",
+    "Python.scratch.executor": "Run",
     "RunOnceActivity.OpenProjectViewOnStart": "true",
     "RunOnceActivity.ShowReadmeOnStart": "true",
     "git-widget-placeholder": "dh__route__evaluation",
@@ -72,6 +51,11 @@
     "node.js.selected.package.tslint": "(autodetect)",
     "nodejs_package_manager_path": "npm",
     "vue.rearranger.settings.migration": "true"
+  },
+  "keyToStringList": {
+    "com.intellij.ide.scratch.ScratchImplUtil$2/New Scratch File": [
+      "Python"
+    ]
   }
 }]]></component>
   <component name="RunManager">
@@ -138,8 +122,10 @@
     <option name="version" value="3" />
   </component>
   <component name="com.intellij.coverage.CoverageDataManagerImpl">
+    <SUITE FILE_PATH="coverage/LTA_SmartAgent$scratch.coverage" NAME="scratch Coverage Results" MODIFIED="1710675976397" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$APPLICATION_CONFIG_DIR$/scratches" />
     <SUITE FILE_PATH="coverage/LTA_SmartAgent$bot.coverage" NAME="bot Coverage Results" MODIFIED="1710577548120" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
     <SUITE FILE_PATH="coverage/LTA_SmartAgent$data_manager.coverage" NAME="data_manager Coverage Results" MODIFIED="1710577642554" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
     <SUITE FILE_PATH="coverage/LTA_SmartAgent$langchain_interface.coverage" NAME="langchain_interface Coverage Results" MODIFIED="1710595677332" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
+    <SUITE FILE_PATH="coverage/LTA_SmartAgent$navigation_2.coverage" NAME="navigation_2 Coverage Results" MODIFIED="1710660090911" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/data" />
   </component>
 </project>

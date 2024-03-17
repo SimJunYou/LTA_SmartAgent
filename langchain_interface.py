@@ -1,4 +1,3 @@
-import heapq
 import os
 import dotenv
 import datetime
@@ -32,6 +31,7 @@ OPENAI_API_KEY = os.environ.get("OPENAI_API_KEY")
 set_debug(False)
 
 datamanager = DataManager()
+
 
 class LangchainInterface:
     def __init__(self, connection_str):
@@ -188,6 +188,23 @@ class LangchainInterface:
         return parking_tool
 
 
+'''
+Approach discussed yesterday:
+extracted incidents info along the road and carpark info near destination, give score to them
+compute weighted average of score based on ETA, incident, carpark, so we have a score for each route
+rank and get the top 3 routes, with at least one public transport option
+
+
+Approach discussed today:
+similar to above with some modifications:
+1. for public transport/ taxi, we do not need to compute/ use the carpark score, carpark score should be only computed for private transport
+2. for car-owner, we will rank and give the top 2 private transport route and 1 public transport option as alternative when the 2 private routes are not feasible
+   for non car-owners, we will rank and give the top 3 public transport route because private transport option is not relevant
+   for non car-owners, we have discussed the possibility of taxi, but we think we do not need to analyse for taxi option, as the taxi driver will take care of that and we do not intend to include taxi driver as a user group
+   
+'''
+
+
 class RouteInfoInput(BaseModel):
     route_str: str = Field(description='Route information string')
 
@@ -223,9 +240,9 @@ class RouteInfoInput(BaseModel):
         """
         # Retrieve car park data
         carpark_df = datamanager.query("SELECT * FROM carpark WHERE (NOW() - INTERVAL '2 hours') <= timestamp")
-        lat, lon = ...  # TODO: get coordinates of destination
+        # lat, lon = ...  # TODO: get coordinates of destination # This can be done by using google map API to get the carparks then use LTA datamall to get the availability
 
-        # Calculate distance between destination and car parks
+        # Calculate distance between destination and car parks [replace by google map API]
         carpark_df[["lat", "lon"]] = carpark_df["location"].str.split(" ", expand=True)
         carpark_df['distance'] = ((carpark_df["lat"] - lat) ** 2 + (carpark_df["lon"] - lon) ** 2) ** 0.5
 
@@ -234,93 +251,174 @@ class RouteInfoInput(BaseModel):
         final_report = str(final_car_parks[["development", "availablelots"]])
         return final_report
 
-    def evaluate_route(self, road_information: dict, carpark_availability: dict) -> float:
+    def evaluate_route(self, time_taken, road_information: dict, private_or_public: bool,
+                       carpark_availability: dict = None) -> float:
         """
         This tool evaluates a given route based on the incidents along the way and the parking lots available
         near the destination. Before using this tool, use extract_incidents and extract_parking_lots to get data
         about the incidents and parking lots for a particular route. Then, you will use that data for this tool.
 
-        For the inputs to this tool, follow the following instructions.
-        The data for the road_information dictionary comes from extract_incidents and should be formatted as follows:
-        {
-            "roadName": {
-                "incidents": numberOfIncidents,
-                "roadworks": numberOfRoadworks,
-                "breakdowns": numberOfBreakdowns
-            },
-            "roadName2": ...,
-        }
-        The data for the carpark_availability dictionary comes from extract_parking_lots and should be formatted as
-        follows:
-        {
-            "carpark": {
-                "development": nameOfDevelopment,
-                "availablelots": numberOfAvailableLots
-            },
-            "carpark2": ...,
-        }
-        The output of this function is a weighted score for the route, denoting its desirability and ease of use.
+        The time score is calculated based on the estimated time taken with a maximum time threshold.
+        If the estimated time is less than the maximum, the score is proportionally reduced from the maximum score.
+        If the estimated time exceeds the maximum threshold, the time score is set to 0.
 
-        :param road_information: a dictionary to be formatted as described above
-        :param carpark_availability: a dictionary to be formatted as described above
-        :return: a score for the route as described
+        The road incident score starts at the maximum and is reduced by a fixed amount for each roadwork and a larger
+        fixed amount for each breakdown or incident, with the minimum score being 0.
+
+        The carpark score for private transport is determined by the number of available parking lots. If the total
+        available lots exceed a predefined threshold, the score is set to the maximum. Otherwise, the score is
+        proportionate to the number of available lots.
+
+        For the inputs to this tool, follow the following instructions:
+        - The data for the road_information dictionary comes from extract_incidents and should be formatted as follows:
+          {
+              "roadName": {
+                  "incidents": numberOfIncidents,
+                  "roadworks": numberOfRoadworks,
+                  "breakdowns": numberOfBreakdowns
+              },
+              "roadName2": ...,
+          }
+        - The data for the carpark_availability dictionary comes from extract_parking_lots and should be formatted as
+          follows:
+          {
+              "carpark": {
+                  "development": nameOfDevelopment,
+                  "availablelots": numberOfAvailableLots
+              },
+              "carpark2": ...,
+          }
+        - The private_or_public boolean indicates whether the route is a private transport option, it is True if private,
+          otherwise False.
+
+        The output of this function is a weighted score for the route, denoting its desirability and ease of use, out of 100.
+
+        :param time_taken: an integer value representing the estimated time in minutes.
+        :param road_information: a dictionary containing information about the road conditions as described.
+        :param private_or_public: a boolean indicating whether the route is for private transport (True) or not (False).
+        :param carpark_availability: an optional dictionary containing carpark availability information for private routes.
+        :return: a score for the route, out of 100, indicating its desirability and ease of use.
         """
 
         # TODO: rewrite this part to match the format described above
-        # input of routes: str for weight,
-        time_weight = 0.6
-        roadwork_weight = 0.1
-        traffic_jam_weight = 0.4
-        routes_with_score = []
+        MAX_SCORE = 100
+        MAX_TIME = 120
+        MAX_CARPARK_LOTS = 100
+        PENALTY_ROADWORK = 10
+        PENALTY_INCIDENT = 20
+        route_score = 0
 
-        for route in routes:
-            parsed_route, public_indicator = self.parse_route_info(route)
-            time_score = parsed_route['estimated_time']
-            # roadwork_score = -10 if parsed_route['roadwork'] else 0
-            traffic_jam_score = -20 if parsed_route['traffic_jam'] else 0
-            score = time_weight * time_score + traffic_jam_weight * traffic_jam_score
-            routes_with_score.append((route, score, public_indicator))
-
-        top_3_routes = self.get_top_transport_routes(routes_with_score)
-        # return the top 3 routes with the lowest/highest score, ranked in a str. must have at least 1 public transport option
-        # shape of the top_3_routes: list of 3 route tuples: (route_in_str_format, route_score, public_transport_indicator)
-        return top_3_routes
-
-    def get_top_transport_routes(self,
-                                 routes_with_score: list[float],
-                                 is_public_transport: list[bool],
-                                 max_results=3) -> str:
-        """
-        TODO: Write out full explanation of this tool
-        routes_with_score = [route1_score, route2_score, route3_score, ...]
-        is_public_transport = [False, False, True, ...]
-        """
-
-        # get top 1 route of public transport
-        public_routes = [route for route in routes_with_score if route[2] == 1]
-        if public_routes:
-            top_1_public_route = heapq.nlargest(1, public_routes, key=lambda x: x[1])
+        # Time score calculation
+        if time_taken >= MAX_TIME:
+            time_score = 0
         else:
-            top_1_public_route = None
+            time_score = MAX_SCORE * (1 - (time_taken / MAX_TIME))
 
-        #get top 3 routes of all modes of transport
-        top_3_routes = heapq.nlargest(max_results, routes_with_score, key=lambda x: x[1])
+        # Incident and roadwork score calculation
+        incident_score = MAX_SCORE
+        for road in road_information.values():
+            incident_score -= (road["roadworks"] * PENALTY_ROADWORK +
+                               road["incidents"] * PENALTY_INCIDENT +
+                               road["breakdowns"] * PENALTY_INCIDENT)
+        incident_score = max(0, incident_score)
 
-        #if there is no public transport in top3, add it in
-        public_in_top_3 = any(route for route in top_3_routes if route[2] == 1)
-        if not public_in_top_3 and top_1_public_route:
-            top_3_routes[-1] = top_1_public_route # replace the last one with public route
+        # Carpark score calculation for private transport
+        carpark_score = 0
+        if private_or_public and carpark_availability is not None:
+            total_lots = sum(carpark["availablelots"] for carpark in carpark_availability.values())
+            carpark_score = MAX_SCORE if total_lots >= MAX_CARPARK_LOTS else total_lots / MAX_CARPARK_LOTS * MAX_SCORE
 
-        #sort the top routes to make sure it is desc
-        top_routes = sorted(top_3_routes, key=lambda x: x[1], reverse = True)
+        # Weights and final score calculation
+        if private_or_public:
+            # For private transport, include carpark score in the final calculation
+            time_weight = 0.5
+            incident_weight = 0.2
+            carpark_weight = 0.3
+            route_score = (time_weight * time_score +
+                           incident_weight * incident_score +
+                           carpark_weight * carpark_score)
+        else:
+            # For public transport, only time and incident scores are considered
+            time_weight = 0.7
+            incident_weight = 0.3
+            route_score = (time_weight * time_score +
+                           incident_weight * incident_score)
 
-        # Example output( in string format):
+        return route_score
+
+
+    def get_top_public_transport_routes(self,
+                                        routes_with_score: list[float],
+                                        is_public_transport: list[bool]) -> str:
         """
-        Best route is route 2 (score=9.7).
-        Second best route is route 1 (score=6.7).
-        Third best route is route 4 (score=5.5).
+        # this function is for non car-owners
+        Get a string describing the top public transport routes based on their scores.
+
+
+        :param routes_with_score (list of float): Scores for each route.
+        :param is_public_transport (list of bool): Whether each route is a public transport route.
+        :return: str: A formatted string describing the top public transport routes.
         """
-        return top_routes
+        # Combine each route score with its index and filter for public transport
+        public_routes_with_scores = [(index + 1, score) for index, (score, is_public) in
+                                     enumerate(zip(routes_with_score, is_public_transport)) if is_public]
+
+        # Sort the public transport routes by score in descending order
+        sorted_public_routes = sorted(public_routes_with_scores, key=lambda x: x[1], reverse=True)
+
+        # Create the formatted output for the top public transport routes
+        top_route_strings = []
+        route_descriptions = ["Best route", "Second best route", "Third best route"]
+        for i, (route_index, score) in enumerate(sorted_public_routes[:3]):
+            route_description = route_descriptions[i] if i < len(route_descriptions) else f"{i + 1}th best route"
+            top_route_strings.append(f"{route_description} is route {route_index} (score={score:.1f})")
+
+        # Join the route strings with a new line and appropriate heading
+        if top_route_strings:
+            return "For public transport options,\n" + ".\n".join(top_route_strings) + "."
+        else:
+            return "No public transport routes available."
+
+
+    def get_top_transport_routes(routes_with_score: list[float],
+                                 is_public_transport: list[bool]) -> str:
+        """
+        # this function is for car-owners
+        Get a string describing the top 2 private transport routes and top 1 public transport route based on their scores.
+
+        :param routes_with_score (list of float): Scores for each route.
+        :param is_public_transport (list of bool): Whether each route is a public transport route.
+        :return: str: A formatted string describing the top transport routes.
+        """
+        # Combine each route score with its index and separate public and private routes
+        transport_routes_with_scores = [(index + 1, score, is_public) for index, (score, is_public) in
+                                        enumerate(zip(routes_with_score, is_public_transport))]
+
+        # Sort the transport routes by score in descending order
+        sorted_transport_routes = sorted(transport_routes_with_scores, key=lambda x: x[1], reverse=True)
+
+        # Split the sorted routes into public and private
+        private_routes = [route for route in sorted_transport_routes if not route[2]]
+        public_routes = [route for route in sorted_transport_routes if route[2]]
+
+        # Create the formatted output
+        top_route_strings = []
+
+        # Get top 2 private routes
+        for i, (route_index, score, _) in enumerate(private_routes[:2]):
+            position = "Best" if i == 0 else "Second best"
+            top_route_strings.append(f"{position} private route is route {route_index} (score={score:.1f})")
+
+        # Get top 1 public route if available
+        if public_routes:
+            route_index, score, _ = public_routes[0]
+            top_route_strings.append(f"Best public route is route {route_index} (score={score:.1f})")
+
+        # Join the route strings with a new line and appropriate heading
+        if top_route_strings:
+            return "\n".join(top_route_strings) + "."
+        else:
+            return "No suitable transport routes available."
 
 
 if __name__ == "__main__":
