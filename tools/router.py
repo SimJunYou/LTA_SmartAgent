@@ -19,6 +19,10 @@ def get_route_tool(addr1: str, addr2: str) -> str:
     return Router().get_route(addr1, addr2)
 
 
+def get_addr_coordinates(addr: str) -> str:
+    return Router().get_addr_coords(addr)
+
+
 class Router:
     def __init__(self):
         self.api_key = config["GOOGLE_API_KEY"]
