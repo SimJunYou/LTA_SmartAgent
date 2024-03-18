@@ -145,3 +145,11 @@ class Database:
 
     #     except Exception as err:
     #         print(f"Error updating table from S3: {err}")
+
+
+# Create a DataManager singleton - this should be used from everywhere using the helper function below
+DM_SINGLETON = DataManager()
+
+
+def data_manager():
+    return DM_SINGLETON
