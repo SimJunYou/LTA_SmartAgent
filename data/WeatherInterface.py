@@ -233,10 +233,3 @@ class WeatherInterface:
             # File does not exist, create a new one
             print("Creating new", output_file)
             data.to_csv(output_file, index=False)
-
-
-test = WeatherInterface()
-print(test.call("airtemp").head())
-print(test.call("rainfall").head())
-print(test.call("psi").head())
-print(test.call("weatherforecast").head())
