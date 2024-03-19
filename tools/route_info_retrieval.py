@@ -1,22 +1,13 @@
 import datetime
 
 import pandas as pd
-from langchain_core.tools import tool
+from langchain.tools import StructuredTool
 
 from data_manager import data_manager
 from tools.router import get_addr_coordinates
 
 
-@tool
 def retrieve_incidents(roads_list: str) -> str:
-    """
-    Given a list of roads as a comma-separated string, this function extracts and returns currently ongoing
-    road incidents on these roads as a comma-separated list.
-    Expected input: "Boon Lay Dr, Boon Lay Wy, ..."
-
-    :param: roads_list: the list of roads to extract traffic incidents for
-    :returns: a description of traffic incidents currently ongoing on these roads
-    """
     # somehow the LLM just wants to call this tool in this format...
     roads_list = roads_list.split(", ")
 
@@ -43,14 +34,7 @@ def retrieve_incidents(roads_list: str) -> str:
     return filtered_messages
 
 
-@tool
 def retrieve_parking_lots(destination: str) -> str:
-    """
-    Given a destination, gives the nearest car park and the available parking lots there as a string.
-
-    :param: destination: the desired destination
-    :return: information about the nearest car park and available parking lots there
-    """
     # Retrieve car park data
     carpark_df = data_manager().query(
         "SELECT * FROM carpark WHERE (NOW() - INTERVAL '1 hours') <= timestamp"
@@ -69,3 +53,21 @@ def retrieve_parking_lots(destination: str) -> str:
     final_car_parks = carpark_df.sort_values("distance", ascending=False).iloc[:3]
     final_report = str(final_car_parks[["development", "availablelots"]])
     return final_report
+
+
+retrieve_incidents_tool = StructuredTool.from_function(
+    func=retrieve_incidents,
+    name="IncidentRetrieverTool",
+    description="""
+    Extract and return currently ongoing road incidents on the provided roads as a comma-separated list.
+    Expected input: "Boon Lay Dr, Boon Lay Wy, ..."
+    """,
+)
+
+retrieve_parking_lots_tool = StructuredTool.from_function(
+    func=retrieve_parking_lots,
+    name="ParkingAvailabilityRetrieverTool",
+    description="""
+    Given a destination, gives the nearest car park and the available parking lots there as a string.
+    """,
+)

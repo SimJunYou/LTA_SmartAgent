@@ -1,7 +1,5 @@
 import os
 import dotenv
-import datetime
-import pandas as pd
 
 from langchain.agents import AgentExecutor, create_openai_tools_agent
 from langchain_core.messages import AIMessage, HumanMessage
@@ -9,19 +7,15 @@ from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.prompts.chat import MessagesPlaceholder
 from langchain.globals import set_debug
 from langchain_openai import ChatOpenAI
-from langchain.agents.openai_assistant import OpenAIAssistantRunnable
-from langchain.memory import ConversationBufferMemory
 from langchain.tools import StructuredTool
 
 # DO NOT REMOVE! May require next time
 # TODO: Merge router into navigation
-from tools.router import get_addr_coordinates
 from tools.route_finder import get_routes_tool
-from tools.route_info_retrieval import retrieve_incidents, retrieve_parking_lots
+from tools.route_info_retrieval import retrieve_incidents_tool, retrieve_parking_lots_tool
 from tools.route_evaluation import (
-    evaluate_route,
-    # get_top_public_transport_routes,
-    get_top_transport_routes,
+    evaluate_route_tool,
+    rank_routes_tool,
 )
 
 from custom_logger import logger
@@ -94,27 +88,19 @@ class LangchainInterface:
         subllm_route_evaluator = SubLLM(
             "RouteEvaluator",
             """
-            Evaluate user-provided routes for usability and ease of use using:
-            1. Road status function for road incidents, road works, and congestion.
-                - The input format for this function is a single string of road names, comma-separated
-                - E.g., "Boon Lay Dr, Boon Lay Wy, ..."
-            2. Parking function for destination parking availability.
-            3. Route evaluation function for scoring based on time, road conditions, and parking.
-            4. Route ranking function - identifies top 2 private and top 1 public transport routes.
-
+            Evaluate user-provided routes for usability and ease of use using available tools.
             The user's input will be a list of route dictionaries in the following format:
             [
-                \{
+                {{
                     "routeIndex": indexNumberOfRoute,
                     "roads": [road1, road2, ...],
                     "destination": destination,
                     "isPublicTransport": boolean,
                     "estTravelTime": timeInMinutes,
                     "distance": distanceInKm,
-                \},
+                }},
                 ...,
             ]
-
 
             Steps:
             1. Check road status for congestion and obstacles for each route.
@@ -122,11 +108,15 @@ class LangchainInterface:
             3. Score each route based on time, road conditions, and parking.
             4. Narrow down routes to 3 options using route ranking, including at least one public transport option.
 
-            If there are 3 or fewer options available, then skip steps 3 and 4.
             Output should be the 3 route options from step 4.
             Provide reasoning for top 3 routes based on road works, incidents, parking availability, travel time, etc.
             """,
-            [retrieve_incidents, retrieve_parking_lots, get_routes_tool],
+            [
+                retrieve_incidents_tool,
+                retrieve_parking_lots_tool,
+                evaluate_route_tool,
+                rank_routes_tool,
+            ],
             verbose=debug_mode,
         )
 
@@ -139,7 +129,8 @@ class LangchainInterface:
             description="""
             Use this tool to rank routes based on factors like time, road conditions, and parking availability.
             Extract roads from turn-by-turn navigations and list them as strings under the "roads" key in each route dictionary.
-            Use the option number from turn-by-turn directions as the route index. Preserve the original destination provided by the user.
+            Use the option number from turn-by-turn directions as the route index.
+            Preserve the original destination provided by the user.
             Return the top three routes along with a brief explanation of the decision.""",
         )
         return subllm_route_evaluator_tool
@@ -183,8 +174,8 @@ class SubLLM:
             agent=agent, tools=tools, verbose=verbose, handle_parsing_errors=True
         )
 
-    def query_agent(self, query):
-        logger.info(f"Received input from primary agent: {query}")
+    def query_agent(self, query) -> str:
+        logger.info(f"Received {type(query)} input from primary agent: {query}")
         try:
             answer = self.agent_executor.invoke({"input": query})
         except Exception as e:
@@ -198,10 +189,7 @@ class SubLLM:
 
 # THIS CODE BELOW IS FOR TESTING ONLY
 if __name__ == "__main__":
-    lc = LangchainInterface(debug_mode=False)
-    # ans = lc.query_agent(
-    #     "How should I get from 259 Boon Lay Drive to Suntec City Mall?"
-    # )
+    lc = LangchainInterface(debug_mode=True)
     history = []
     while user_input := input("Chat: "):
         ans, history = lc.query_agent(user_input, history)

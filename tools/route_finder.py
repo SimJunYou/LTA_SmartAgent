@@ -4,15 +4,21 @@ import requests
 from bs4 import BeautifulSoup
 import dotenv
 
-from langchain_core.tools import tool
+from langchain_core.tools import StructuredTool
 
 
 config = dotenv.dotenv_values(".env")
 
 
-@tool
-def get_routes_tool(origin: str, destination: str):
-    """
+def get_routes(origin: str, destination: str):
+    # TODO: Use "avoid" parameter
+    nav = Navigation(origin, destination, config["GOOGLE_API_KEY"])
+    return nav.driving() + nav.publictransport()
+
+get_routes_tool = StructuredTool.from_function(
+    func=get_routes,
+    name="RouteFindingTool",
+    description="""
     Given address 1 and address 2, returns the possible routes between them in a single string of turn-by-turn directions.
     First, a few options for driving (private transport) will be given. Then, a few options for public transport will be given.
 
@@ -22,9 +28,7 @@ def get_routes_tool(origin: str, destination: str):
 
     Some portions of the directions may include road and expressway names, which should be noted and used.
     """
-    # TODO: Use "avoid" parameter
-    nav = Navigation(origin, destination, config["GOOGLE_API_KEY"])
-    return nav.driving() + nav.publictransport()
+)
 
 
 class Navigation:

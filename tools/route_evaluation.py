@@ -1,56 +1,12 @@
-from langchain_core.tools import tool
+from langchain.tools import StructuredTool
 
 
-@tool
 def evaluate_route(
     time_taken,
     road_information: dict,
     private_or_public: bool,
     carpark_availability: dict = None,
 ) -> float:
-    """
-    This tool evaluates a route based on incidents along the way and parking availability near the destination.
-    Use extract_incidents and extract_parking_lots before using this tool using that data.
-
-    Time score: calculated based on estimated time taken with a maximum threshold. If less, score is reduced proportionally;
-    if exceeds threshold, score is 0.
-
-    Road incident score: starts at maximum, reduced by fixed amount for each roadwork or breakdown.
-    Carpark score for private transport: determined by available parking lots. If lots exceed threshold, score is maximum; otherwise, score is proportionate to available lots.
-
-    If the user is taking public transport, then leave the road_information and carpark_availability dictionaries empty.
-
-    For the inputs to this tool, follow the following instructions:
-    - The data for the road_information dictionary comes from extract_incidents and should be formatted as follows:
-        {
-            "roadName": {
-                "incidents": numberOfIncidents,
-                "roadworks": numberOfRoadworks,
-                "breakdowns": numberOfBreakdowns
-            },
-            "roadName2": ...,
-        }
-    - The data for the carpark_availability dictionary comes from extract_parking_lots and should be formatted as
-        follows:
-        {
-            "carpark": {
-                "development": nameOfDevelopment,
-                "availablelots": numberOfAvailableLots
-            },
-            "carpark2": ...,
-        }
-    - The private_or_public boolean indicates whether the route is a private transport option, it is True if private,
-        otherwise False.
-
-    The output of this function is a weighted score for the route, denoting its desirability and ease of use, out of 100.
-
-    :param time_taken: (int), estimated time in minutes.
-    :param road_information: dictionary with road conditions.
-    :param private_or_public: boolean indicating route type.
-    :param carpark_availability: optional dictionary with carpark availability.
-    :return: score for the route, out of 100, indicating desirability and ease of use
-
-    """
     MAX_SCORE = 100
     MAX_TIME = 120
     MAX_CARPARK_LOTS = 100
@@ -106,18 +62,12 @@ def evaluate_route(
     return route_score
 
 
-@tool
 def get_top_public_transport_routes(
     routes_with_score: list[float], is_public_transport: list[bool]
 ) -> str:
+    # This function is only for non-drivers
     """
-    # this function is for non car-owners
     Get a string describing the top public transport routes based on their scores.
-
-
-    :param routes_with_score (list of float): Scores for each route.
-    :param is_public_transport (list of bool): Whether each route is a public transport route.
-    :return: str: A formatted string describing the top public transport routes.
     """
     # Combine each route score with its index and filter for public transport
     public_routes_with_scores = [
@@ -153,7 +103,6 @@ def get_top_public_transport_routes(
         return "No public transport routes available."
 
 
-@tool
 def get_top_transport_routes(
     routes_with_score: list[float], is_public_transport: list[bool]
 ) -> str:
@@ -203,3 +152,32 @@ def get_top_transport_routes(
         return "\n".join(top_route_strings) + "."
     else:
         return "No suitable transport routes available."
+
+
+evaluate_route_tool = StructuredTool.from_function(
+    func=evaluate_route,
+    name="RouteEvaluatorTool",
+    description="""
+    Evaluate routes based on incidents and parking availability near the destination and gives final weighted score. Components:
+    - Time score: Scored proportionately to estimated travel time.
+    - Road incident score: From maximum score, penalized for each roadwork or breakdown.
+    - Carpark score (for private transport): Based on available parking lots.
+
+    Utilize extract_incidents and extract_parking_lots to provide road_information and carpark_availability.
+    road_information format:
+    {"roadName1": { "incidents": numberOfIncidents, "roadworks": numberOfRoadworks, "breakdowns": numberOfBreakdowns}, ...}
+    carpark_availability format:
+    {"carpark": {"development": nameOfDevelopment, "availablelots": numberOfAvailableLots}, ...}
+    private_or_public: True if taking private transport, False otherwise
+
+    Output is a weighted score for the route, denoting its desirability and ease of use, out of 100.
+    """,
+)
+
+rank_routes_tool = StructuredTool.from_function(
+    func=get_top_transport_routes,
+    name="RankRoutesTool",
+    description="""
+    Get a string describing the top public transport routes based on their scores.
+    """,
+)
