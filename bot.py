@@ -29,7 +29,7 @@ async def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
     context.user_data["activity"] = True
 
     await update.message.reply_html(
-        rf"Hi {update.effective_user.first_name}! This is LTA Smart Agent. Feel free to ask me anything!"
+        rf"Hi {update.effective_user.first_name}! This is RouteWise, your friendly route planner assistant. Feel free to ask me anything!"
     )
 
 
