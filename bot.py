@@ -50,13 +50,13 @@ async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
 async def normal_message(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Runs on any new message. Retrieve new query and history then pass them to Langchain"""
 
-    placeholder_msg = await update.message.reply_text("Thinking...")
-
     user_id = f"{update.effective_user.username}[{update.effective_user.id}]"
     if "activity" not in context.user_data or not context.user_data["activity"]:
+        await "Hi there, please use /start so that I can help you!"
         logger.warning(f"User {user_id} did not start bot but tried sending message")
         return
 
+    placeholder_msg = await update.message.reply_text("Thinking...")
     user_message = update.message.text
     chat_history = context.user_data["history"]
     answer, new_history = LC_INTERFACE.query_agent(user_message, chat_history)
