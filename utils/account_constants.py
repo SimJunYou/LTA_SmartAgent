@@ -1,4 +1,4 @@
-AMI_ID = "ami-0110dd74ac61fe967"  # Innovation Challenge AMI
+AMI_ID = "ami-043ea47a5c0c4ddcd"  # Innovation Challenge AMI (as of March 19th, 2024)
 SUBNET_ID1 = "subnet-04b4716667a1b9ba9"
 SUBNET_ID2 = "subnet-013815c1beee630fe"
 KEY_NAME = "prod-ec2-key1"
