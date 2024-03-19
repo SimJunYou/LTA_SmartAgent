@@ -1,9 +1,8 @@
 import os
 import re
 import dotenv
-from collections import defaultdict
 
-from telegram import ForceReply, Update
+from telegram import Update
 from telegram.constants import ParseMode
 from telegram.ext import (
     Application,

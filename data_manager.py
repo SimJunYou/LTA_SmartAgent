@@ -1,8 +1,3 @@
-import os
-import json
-import datetime
-import requests
-
 import dotenv
 import pandas as pd
 from sqlalchemy import create_engine, text
@@ -29,8 +24,8 @@ class DataManager:
             self.database = Database()
         else:
             self.aws = AWS()
-            instance_id = aws.rds.listInstance()
-            endpoint, port = aws.rds.readInstance(instance_id)
+            instance_id = self.aws.rds.listInstance()
+            endpoint, port = self.aws.rds.readInstance(instance_id)
             self.database = Database(endpoint=endpoint, port=port)
 
         # Expose connection string for initialization of Langchain SQL toolkit

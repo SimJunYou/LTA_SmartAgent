@@ -1,11 +1,9 @@
 import time
 import boto3
-import botocore
 import os
 import dotenv
 import base64
 import pandas as pd
-from sqlalchemy import create_engine, text
 
 import utils.account_constants as cst
 

@@ -3,35 +3,28 @@ import dotenv
 import datetime
 import pandas as pd
 
-from langchain.agents import AgentExecutor, create_openai_tools_agent, ZeroShotAgent
-from langchain.chains import LLMChain
-from langchain_core.messages import AIMessage, HumanMessage, SystemMessage
-from langchain_core.prompts import PromptTemplate, ChatPromptTemplate
-from langchain_core.prompts.chat import (
-    HumanMessagePromptTemplate,
-    MessagesPlaceholder,
-)
-from langchain_community.agent_toolkits import SQLDatabaseToolkit
-from langchain_community.agent_toolkits.sql.prompt import SQL_FUNCTIONS_SUFFIX
-from langchain_community.utilities import SQLDatabase
+from langchain.agents import AgentExecutor, create_openai_tools_agent
+from langchain_core.messages import AIMessage, HumanMessage
+from langchain_core.prompts import ChatPromptTemplate
+from langchain_core.prompts.chat import MessagesPlaceholder
 from langchain.globals import set_debug
 from langchain_openai import ChatOpenAI
 from langchain.agents.openai_assistant import OpenAIAssistantRunnable
 from langchain.memory import ConversationBufferMemory
 from langchain.tools import StructuredTool
 
-from data_manager import data_manager
-from custom_logger import logger
-
+# DO NOT REMOVE! May require next time
 # TODO: Merge router into navigation
 from tools.router import get_addr_coordinates
 from tools.route_finder import get_routes_tool
 from tools.route_info_retrieval import retrieve_incidents, retrieve_parking_lots
 from tools.route_evaluation import (
     evaluate_route,
-    get_top_public_transport_routes,
+    # get_top_public_transport_routes,
     get_top_transport_routes,
 )
+
+from custom_logger import logger
 
 config = dotenv.dotenv_values(".env")
 OPENAI_API_KEY = os.environ.get("OPENAI_API_KEY")

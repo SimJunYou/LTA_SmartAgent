@@ -1,5 +1,4 @@
 import requests
-import os
 import dotenv
 import json
 from bs4 import BeautifulSoup
