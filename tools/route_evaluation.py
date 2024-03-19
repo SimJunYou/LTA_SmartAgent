@@ -158,19 +158,8 @@ evaluate_route_tool = StructuredTool.from_function(
     func=evaluate_route,
     name="RouteEvaluatorTool",
     description="""
-    Evaluate routes based on incidents and parking availability near the destination and gives final weighted score. Components:
-    - Time score: Scored proportionately to estimated travel time.
-    - Road incident score: From maximum score, penalized for each roadwork or breakdown.
-    - Carpark score (for private transport): Based on available parking lots.
-
-    Utilize extract_incidents and extract_parking_lots to provide road_information and carpark_availability.
-    road_information format:
-    {"roadName1": { "incidents": numberOfIncidents, "roadworks": numberOfRoadworks, "breakdowns": numberOfBreakdowns}, ...}
-    carpark_availability format:
-    {"carpark": {"development": nameOfDevelopment, "availablelots": numberOfAvailableLots}, ...}
-    private_or_public: True if taking private transport, False otherwise
-
-    Output is a weighted score for the route, denoting its desirability and ease of use, out of 100.
+    Evaluate routes based on incidents and parking availability near the destination and gives final weighted score.
+    
     """,
 )
 
@@ -181,3 +170,18 @@ rank_routes_tool = StructuredTool.from_function(
     Get a string describing the top public transport routes based on their scores.
     """,
 )
+
+
+# Components:
+# - Time score: Scored proportionately to estimated travel time.
+# - Road incident score: From maximum score, penalized for each roadwork or breakdown.
+# - Carpark score (for private transport): Based on available parking lots.
+
+# Utilize extract_incidents and extract_parking_lots to provide road_information and carpark_availability.
+# road_information format:
+# {"roadName1": { "incidents": numberOfIncidents, "roadworks": numberOfRoadworks, "breakdowns": numberOfBreakdowns}, ...}
+# carpark_availability format:
+# {"carpark": {"development": nameOfDevelopment, "availablelots": numberOfAvailableLots}, ...}
+# private_or_public: True if taking private transport, False otherwise
+
+# Output is a weighted score for the route, denoting its desirability and ease of use, out of 100.

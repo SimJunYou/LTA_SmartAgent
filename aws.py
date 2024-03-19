@@ -332,3 +332,11 @@ class AWS:
                 MaxAllocatedStorage=20,
             )
             print(response)
+
+
+if __name__ == "__main__":
+    aws = AWS()
+    # print("creating EC2 and RDS instances...")
+    # aws.start()
+    # print("done!")
+    aws.ec2.listInstance()

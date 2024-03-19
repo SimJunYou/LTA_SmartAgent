@@ -7,6 +7,7 @@ from data.WeatherInterface import WeatherInterface
 from data.DatamallInterface import DatamallInterface
 from utils.all_tables_query import CREATE_TABLES_QUERY, DROP_TABLES_QUERY
 
+from custom_logger import logger
 
 config = dotenv.dotenv_values(".env")
 
@@ -20,16 +21,21 @@ class DataManager:
     """
 
     def __init__(self):
-        if config["IS_TEST_ENV"]:
+        if config["IS_TEST_ENV"] == 1:
             self.database = Database()
         else:
             self.aws = AWS()
             instance_id = self.aws.rds.listInstance()
-            endpoint, port = self.aws.rds.readInstance(instance_id)
+            print(instance_id)
+            endpoint, port = self.aws.rds.readInstance(instance_id[0])
+            print(endpoint, port)
             self.database = Database(endpoint=endpoint, port=port)
 
         # Expose connection string for initialization of Langchain SQL toolkit
         self.connection_str = self.database.connection_str
+        logger.info(
+            f"Database initialized with connection string: {self.connection_str}"
+        )
 
         self.datamall = DatamallInterface(config["DATAMALL_API_KEY"])
         self.datamall_apis = [
@@ -148,3 +154,7 @@ DM_SINGLETON = DataManager()
 
 def data_manager():
     return DM_SINGLETON
+
+
+if __name__ == "__main__":
+    DM_SINGLETON.full_db_refresh()

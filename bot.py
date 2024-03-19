@@ -52,7 +52,9 @@ async def normal_message(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
 
     user_id = f"{update.effective_user.username}[{update.effective_user.id}]"
     if "activity" not in context.user_data or not context.user_data["activity"]:
-        await "Hi there, please use /start so that I can help you!"
+        await update.message.reply_text(
+            "Hi there, please use /start so that I can help you!"
+        )
         logger.warning(f"User {user_id} did not start bot but tried sending message")
         return
 

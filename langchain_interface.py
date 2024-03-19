@@ -12,7 +12,10 @@ from langchain.tools import StructuredTool
 # DO NOT REMOVE! May require next time
 # TODO: Merge router into navigation
 from tools.route_finder import get_routes_tool
-from tools.route_info_retrieval import retrieve_incidents_tool, retrieve_parking_lots_tool
+from tools.route_info_retrieval import (
+    retrieve_incidents_tool,
+    retrieve_parking_lots_tool,
+)
 from tools.route_evaluation import (
     evaluate_route_tool,
     rank_routes_tool,
@@ -115,7 +118,7 @@ class LangchainInterface:
                 retrieve_incidents_tool,
                 retrieve_parking_lots_tool,
                 evaluate_route_tool,
-                rank_routes_tool,
+                # rank_routes_tool,
             ],
             verbose=debug_mode,
         )
