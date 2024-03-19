@@ -1,4 +1,4 @@
-AMI_ID = "ami-043ea47a5c0c4ddcd"  # Innovation Challenge AMI (as of March 19th, 2024)
+AMI_ID = "ami-091317bc52c79c6e9"  # Innovation Challenge AMI (as of March 20th, 2024)
 SUBNET_ID1 = "subnet-04b4716667a1b9ba9"
 SUBNET_ID2 = "subnet-013815c1beee630fe"
 KEY_NAME = "prod-ec2-key1"
@@ -6,4 +6,4 @@ SECURITY_GROUP_ID = "sg-02d3b51498c3adf5b"  # Web security group, ID of the secu
 SECURITY_GROUP_ID_RDS = "sg-0f211b59e94201cc6"  # RDS Security Group
 INSTANCE_PROFILE = "arn:aws:iam::329121819345:instance-profile/RDS_role_for_EC2"
 DB_SUBNET_GROUP_NAME = "db5102-db-public-subnet-group"
-EC2_INSTANCE_ID = "i-036c40edee469a9bb"
+EC2_INSTANCE_ID = "i-036c40edee469a9bb"  # primary server
