@@ -90,7 +90,7 @@ class Database:
         if endpoint is None or port is None:
             raise Exception("Endpoint or port cannot be empty!")
 
-        print(f"Connecting to database instance {endpoint}:{port}")
+        # print(f"Connecting to database instance {endpoint}:{port}")
 
         db_user, db_pw, db_name = (
             config["DB_USER"],

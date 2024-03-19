@@ -21,6 +21,7 @@ from langchain.memory import ConversationBufferMemory
 from langchain.tools import StructuredTool
 
 from data_manager import data_manager
+from custom_logger import logger
 
 # TODO: Merge router into navigation
 from tools.router import get_addr_coordinates
@@ -63,10 +64,16 @@ class LangchainInterface:
                     Note that you MUST use the route-evaluating function to evaluate the routes, even if there are
                     less than three routes given. The route-evaluating function gives you explanations of why the
                     top routes were chosen. Use this explanation inside your reply to the user.
-                    DO NOT give the turn-by-turn navigation directions to the user.
+                    DO NOT give the turn-by-turn navigation directions to the user. Instead, you may give
+                    a high-level overview of the route, describing it like a person familiar with the roads in Singapore.
+                    Example: "Take the route that goes along the AYE, as there is likely congestion on the PIE."
+                    Another example: "You can take the usual route, but avoid Lornie Road as there has been an accident."
 
                     Reply the user in a friendly and conversational tone, maintaining a moderate level of formality.
-                    You may use Telegram's message formatting conventions to make your message easier to understand.
+
+                    You may use the formatting methods below to make your message easier to read.
+                    Bold: *bold text*, Italics: _italicized text_, Underline: __underlined text__.
+                    Do not use anything other than bold, italics, or underlines.
 
                     The chat history is below:
                     """,
@@ -92,6 +99,7 @@ class LangchainInterface:
     def get_route_eval_subllm(self, debug_mode):
         # Create sub-LLMs, each with their own prompts and toolkits
         subllm_route_evaluator = SubLLM(
+            "RouteEvaluator",
             """
             Evaluate user-provided routes for usability and ease of use using:
             1. Road status function for road incidents, road works, and congestion.
@@ -143,16 +151,25 @@ class LangchainInterface:
         )
         return subllm_route_evaluator_tool
 
-    def query_agent(self, query, history):
-        answer = self.agent_executor.invoke({"input": query, "chat_history": history})
-        # answer = self.agent.invoke({"input": query})
-        # chain = prompt | agent
-        # answer = chain.invoke({"input": "Which area has the most available lots?"})
-        return answer
+    def query_agent(self, user_input, history):
+        """
+        History starts as a blank list, then gets populated with the user's chat history with the bot.
+        Return both the answer and history, since history is stored inside the Telegram library in a user dictionary.
+        """
+        answer = self.agent_executor.invoke(
+            {"input": user_input, "chat_history": history}
+        )["output"]
+        logger.info(f"Received output from primary agent: {answer}")
+        history += [
+            HumanMessage(content=user_input, example=False),
+            AIMessage(content=answer, example=False),
+        ]
+        return answer, history
 
 
 class SubLLM:
-    def __init__(self, subprompt, tools, verbose=False):
+    def __init__(self, name, subprompt, tools, verbose=False):
+        self.name = name
         prompt = ChatPromptTemplate.from_messages(
             [
                 (
@@ -174,14 +191,19 @@ class SubLLM:
         )
 
     def query_agent(self, query):
+        logger.info(f"Received input from primary agent: {query}")
         try:
             answer = self.agent_executor.invoke({"input": query})
-            return answer
         except Exception as e:
+            logger.error(f"Error in secondary agent {self.name}!\n{type(e)}: {e}")
             error_msg = f"Calling tool with arguments: {query} raised the following error:\n\n{type(e)}: {e}\n"
             error_msg += "Try calling the tool again with different arguments. Follow the input format instructions."
+            return error_msg
+        logger.info(f"Secondary agent generated output: {answer}")
+        return answer
 
 
+# THIS CODE BELOW IS FOR TESTING ONLY
 if __name__ == "__main__":
     lc = LangchainInterface(debug_mode=False)
     # ans = lc.query_agent(
@@ -189,11 +211,7 @@ if __name__ == "__main__":
     # )
     history = []
     while user_input := input("Chat: "):
-        ans = lc.query_agent(user_input, history)["output"]
+        ans, history = lc.query_agent(user_input, history)
         print("\nSmart Agent: " + ans + "\n")
-        history += [
-            HumanMessage(content=user_input, example=False),
-            AIMessage(content=ans, example=False),
-        ]
     print("Chat done! History of chat:")
     print(history)
