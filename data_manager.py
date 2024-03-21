@@ -21,9 +21,11 @@ class DataManager:
     """
 
     def __init__(self):
-        if config["IS_TEST_ENV"] == 1:
+        if config["IS_TEST_ENV"] == "1":
+            logger.info("Starting application in TEST environment")
             self.database = Database()
         else:
+            logger.info("Starting application in PROD environment")
             self.aws = AWS()
             instance_id = self.aws.rds.listInstance()
             print(instance_id)

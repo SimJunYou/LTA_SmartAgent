@@ -26,7 +26,7 @@ from custom_logger import logger
 config = dotenv.dotenv_values(".env")
 OPENAI_API_KEY = os.environ.get("OPENAI_API_KEY")
 
-set_debug(False)
+set_debug(True)
 
 
 class LangchainInterface:
@@ -43,10 +43,10 @@ class LangchainInterface:
                     Always make sure that you understand the user's origin and destination. If the user only
                     provided their destination, you may ask for their origin point. You do not need to ask if
                     they will be taking private or public transport, since you will be giving options for both.
-                    
+
                     To discover and evaluate routes from the user's origin to their destination, you can use
                     the following tools:
-                    
+
                     1. Route-finding function for turn-by-turn instructions from one address to another. This tool
                     provides you with a few different options for routes, both for driving and public transport.
                     2. Route-evaluating function to get the best routes out of all the different options.
@@ -56,6 +56,7 @@ class LangchainInterface:
                     top routes were chosen. Use this explanation inside your reply to the user.
                     DO NOT give the turn-by-turn navigation directions to the user. Instead, you may give
                     a high-level overview of the route, describing it like a person familiar with the roads in Singapore.
+                    State whether the route is based on public or private transport.
                     Example: "Take the route that goes along the AYE, as there is likely congestion on the PIE."
                     Another example: "You can take the usual route, but avoid Lornie Road as there has been an accident."
 
@@ -78,7 +79,12 @@ class LangchainInterface:
         route_eval_tool = self.get_route_eval_subllm(debug_mode)
         all_tools = [get_routes_tool, route_eval_tool]
 
-        main_llm = ChatOpenAI(openai_api_key=config["OPENAI_API_KEY"], temperature=0)
+        main_llm = ChatOpenAI(
+            model_name="gpt-3.5-turbo-0125",
+            # model_name="gpt-4-0613",
+            openai_api_key=config["OPENAI_API_KEY"],
+            temperature=0,
+        )
 
         agent = create_openai_tools_agent(llm=main_llm, tools=all_tools, prompt=prompt)
 
@@ -92,33 +98,22 @@ class LangchainInterface:
             "RouteEvaluator",
             """
             Evaluate user-provided routes for usability and ease of use using available tools.
-            The user's input will be a list of route dictionaries in the following format:
-            [
-                {{
-                    "routeIndex": indexNumberOfRoute,
-                    "roads": [road1, road2, ...],
-                    "destination": destination,
-                    "isPublicTransport": boolean,
-                    "estTravelTime": timeInMinutes,
-                    "distance": distanceInKm,
-                }},
-                ...,
-            ]
 
             Steps:
             1. Check road status for congestion and obstacles for each route.
-            2. Find parking availability at destination.                
+            2. Find parking availability at destination.
             3. Score each route based on time, road conditions, and parking.
-            4. Narrow down routes to 3 options using route ranking, including at least one public transport option.
+            4. Narrow down routes to 3 options using route ranking, including at least one public transport option.    
 
             Output should be the 3 route options from step 4.
-            Provide reasoning for top 3 routes based on road works, incidents, parking availability, travel time, etc.
+            Provide reasoning for top 3 routes based on road works, incidents, parking availability, travel time, etc. If it is a public
+            transport option, then you do not have to mention parking availability.
             """,
             [
                 retrieve_incidents_tool,
                 retrieve_parking_lots_tool,
                 evaluate_route_tool,
-                # rank_routes_tool,
+                rank_routes_tool,
             ],
             verbose=debug_mode,
         )
@@ -131,9 +126,18 @@ class LangchainInterface:
             name="RouteEvaluator",
             description="""
             Use this tool to rank routes based on factors like time, road conditions, and parking availability.
-            Extract roads from turn-by-turn navigations and list them as strings under the "roads" key in each route dictionary.
-            Use the option number from turn-by-turn directions as the route index.
-            Preserve the original destination provided by the user.
+            Provide input as 
+            [
+                {{
+                    "routeIndex": routeOptionNumber,
+                    "roads": [road1, road2, ...],
+                    "destination": destination,
+                    "isPublicTransport": boolean,
+                    "estTravelTime": timeInMinutes,
+                    "distance": distanceInKm,
+                }},
+                ...,
+            ]
             Return the top three routes along with a brief explanation of the decision.""",
         )
         return subllm_route_evaluator_tool
@@ -179,13 +183,7 @@ class SubLLM:
 
     def query_agent(self, query) -> str:
         logger.info(f"Received {type(query)} input from primary agent: {query}")
-        try:
-            answer = self.agent_executor.invoke({"input": query})
-        except Exception as e:
-            logger.error(f"Error in secondary agent {self.name}!\n{type(e)}: {e}")
-            error_msg = f"Calling tool with arguments: {query} raised the following error:\n\n{type(e)}: {e}\n"
-            error_msg += "Try calling the tool again with different arguments. Follow the input format instructions."
-            return error_msg
+        answer = self.agent_executor.invoke({"input": query})
         logger.info(f"Secondary agent generated output: {answer}")
         return answer
 

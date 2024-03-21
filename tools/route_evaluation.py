@@ -2,7 +2,7 @@ from langchain.tools import StructuredTool
 
 
 def evaluate_route(
-    time_taken,
+    time_taken_in_hours: float,
     road_information: dict,
     private_or_public: bool,
     carpark_availability: dict = None,
@@ -15,10 +15,10 @@ def evaluate_route(
     route_score = 0
 
     # Time score calculation
-    if time_taken >= MAX_TIME:
+    if time_taken_in_hours >= MAX_TIME:
         time_score = 0
     else:
-        time_score = MAX_SCORE * (1 - (time_taken / MAX_TIME))
+        time_score = MAX_SCORE * (1 - (time_taken_in_hours / MAX_TIME))
 
     # Incident and roadwork score calculation
     incident_score = MAX_SCORE
@@ -159,7 +159,22 @@ evaluate_route_tool = StructuredTool.from_function(
     name="RouteEvaluatorTool",
     description="""
     Evaluate routes based on incidents and parking availability near the destination and gives final weighted score.
-    
+    road_information should be in this format:
+    {{
+        "roadName": {{
+            "roadworks": count,
+            "incidents": count,
+            "breakdowns": count,
+        }},
+        ...
+    }}
+    carparkInformation should be in the following format:
+    {{
+        "carparkName": {{
+            "availablelots": count,
+        }},
+        ...
+    }}
     """,
 )
 
