@@ -98,7 +98,27 @@ class AWS:
             # Define your User Data script
             user_data_script = """
             #!/bin/bash
-            echo "Hello, world!" > /tmp/test.txt
+            # chkconfig: 2345 90 10
+            # description: startup script for RouteWise bot (DBA5102 Innovation Challenge)
+            exec &>> /var/log/startup_script.log
+            echo "[$(date)] Starting RouteWise bot startup script"
+            # Switch to the ec2-user 
+            su - ec2-user -c "
+            echo '[$(date)] Switched to ec2-user'
+            # Change directory
+            cd /home/ec2-user/LTA_SmartAgent
+            echo '[$(date)] Pulling latest changes from Git'
+            git pull
+            echo '[$(date)] Initializing conda'
+            conda init
+            echo '[$(date)] Activating conda environment'
+            conda activate dba5102
+            echo '[$(date)] Installing Python dependencies'
+            pip install pandas numpy bs4 langchain langchain-experimental langchain-openai python-telegram-bot python-dotenv tabulate boto3 sqlalchemy psycopg2-binary
+            echo '[$(date)] Running Python bot'
+            python bot.py
+            "
+            echo "[$(date)] RouteWise bot startup script completed"
             """
 
             # Encode the script in Base64 (optional)
